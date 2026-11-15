@@ -1,0 +1,11 @@
+@DoctorPatientTracking.API_HostAddress = http://localhost:5070
+
+GET {{DoctorPatientTracking.API_HostAddress}}/openapi/v1.json
+Accept: application/json
+
+###
+
+GET {{DoctorPatientTracking.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

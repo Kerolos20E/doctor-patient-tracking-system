@@ -1,0 +1,15 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="DoctorPatientTracking.Shared/DoctorPatientTracking.Shared.csproj" Id="94c15829-3fe7-4e16-abf5-647013f255b8" />
+    <Project Path="src/DoctorPatientTracking.API/DoctorPatientTracking.API.csproj" />
+    <Project Path="src/DoctorPatientTracking.Domain/DoctorPatientTracking.Domain.csproj" />
+  </Folder>
+  <Folder Name="/src/Application/">
+    <Project Path="DoctorPatientTracking.Services/DoctorPatientTracking.Services.csproj" Id="f54215fd-7160-4b13-85fe-42b60b730709" />
+    <Project Path="DoctorPatientTracking.ServicesAbstraction/DoctorPatientTracking.ServicesAbstraction.csproj" Id="6d241ecd-5d24-4002-8e02-c830dbedccf6" />
+  </Folder>
+  <Folder Name="/src/Infrastructure/">
+    <Project Path="DoctorPatientTracking.Persistence/DoctorPatientTracking.Persistence.csproj" Id="64388ac9-4a45-4f18-a9fe-50d006771da2" />
+    <Project Path="DoctorPatientTracking.Presentation/DoctorPatientTracking.Presentation.csproj" Id="2c2eb067-0708-4cdd-a74f-9233f05d588e" />
+  </Folder>
+</Solution>
