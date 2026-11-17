@@ -2,7 +2,7 @@
 
 namespace DoctorPatientTracking.Domain.Abstractions
 {
-    public interface IRefreshToken
+    public interface IRefreshTokenRepo
     {
         Task<RefreshToken?> GetByTokenAsync(string token);
 

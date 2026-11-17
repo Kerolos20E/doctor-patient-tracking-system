@@ -3,10 +3,10 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace DoctorPatientTracking.Persistence.Data.Migrations
+namespace DoctorPatientTracking.Persistence.Migrations
 {
     /// <inheritdoc />
-    public partial class IntialMigration : Migration
+    public partial class intialMigration : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -270,6 +270,26 @@ namespace DoctorPatientTracking.Persistence.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "RefreshToken",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Token = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
+                    UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    ExpiresOnUtc = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_RefreshToken", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_RefreshToken_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "ClinicQueues",
                 columns: table => new
                 {
@@ -489,9 +509,10 @@ namespace DoctorPatientTracking.Persistence.Data.Migrations
                 column: "TenantId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_ClinicClosedDates_TenantId",
+                name: "IX_ClinicClosedDates_TenantId_Date",
                 table: "ClinicClosedDates",
-                column: "TenantId");
+                columns: new[] { "TenantId", "Date" },
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_ClinicQueues_ClinicServiceId",
@@ -556,6 +577,17 @@ namespace DoctorPatientTracking.Persistence.Data.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_RefreshToken_Token",
+                table: "RefreshToken",
+                column: "Token",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_RefreshToken_UserId",
+                table: "RefreshToken",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_TenantClinics_Email",
                 table: "TenantClinics",
                 column: "Email",
@@ -565,6 +597,12 @@ namespace DoctorPatientTracking.Persistence.Data.Migrations
                 name: "IX_TenantClinics_PhoneNumber",
                 table: "TenantClinics",
                 column: "PhoneNumber",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_TenantClinics_Subdomain",
+                table: "TenantClinics",
+                column: "Subdomain",
                 unique: true);
         }
 
@@ -600,6 +638,9 @@ namespace DoctorPatientTracking.Persistence.Data.Migrations
 
             migrationBuilder.DropTable(
                 name: "MedicalTests");
+
+            migrationBuilder.DropTable(
+                name: "RefreshToken");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");

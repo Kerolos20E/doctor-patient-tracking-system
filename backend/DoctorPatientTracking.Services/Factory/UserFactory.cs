@@ -1,7 +1,4 @@
-﻿using DoctorPatientTracking.Domain.Models;
-using DoctorPatientTracking.Shared.Dtos;
-
-namespace DoctorPatientTracking.Services.Factory
+﻿namespace DoctorPatientTracking.Services.Factory
 {
     public static class UserFactory
     {

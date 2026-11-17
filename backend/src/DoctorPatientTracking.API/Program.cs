@@ -1,6 +1,10 @@
 using DoctorPatientTracking.API.Tenant;
 using DoctorPatientTracking.Domain.Abstractions;
+using DoctorPatientTracking.Domain.Models;
 using DoctorPatientTracking.Persistence.Data;
+using DoctorPatientTracking.Persistence.Repositories;
+using DoctorPatientTracking.Services.Implementation;
+using DoctorPatientTracking.ServicesAbstraction.Contracts;
 using DoctorPatientTracking.Shared;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -13,7 +17,7 @@ namespace DoctorPatientTracking.API;
 
 public class Program
 {
-    public static void Main(string[] args)
+    public static async Task Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
 
@@ -22,10 +26,9 @@ public class Program
         builder.Services.AddControllers();
         builder.Services.AddOpenApi();
         builder.Services.AddMemoryCache();
-        builder.Services.AddScoped<ITenantProvider, TenantProvider>();
         builder.Services.AddDbContext<ApplicationDbContext>(e =>
             e.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-        builder.Services.AddIdentity<ApplicationDbContext, IdentityRole<Guid>>(options =>
+        builder.Services.AddIdentity<ApplicationUser, IdentityRole<Guid>>(options =>
         {
             options.Password.RequireNonAlphanumeric = true;
             options.Password.RequireLowercase = true;
@@ -51,11 +54,33 @@ public class Program
                 IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration.GetRequiredSection("JWT")["SecretKey"]!)),
                 ClockSkew = TimeSpan.Zero
             };
+            options.Events = new JwtBearerEvents
+            {
+                OnTokenValidated = ctx =>
+                {
+                    var tenant = ctx.HttpContext.RequestServices.GetRequiredService<ITenantProvider>();
+                    if (ctx.Principal?.FindFirst("tenant_id")?.Value != tenant.TenantId.ToString())
+                        ctx.Fail("Token does not belong to this clinic.");
+                    return Task.CompletedTask;
+                }
+            };
         });
+        builder.Services.AddScoped<ITenantProvider, TenantProvider>();
+        builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
+        builder.Services.AddScoped<IRefreshTokenRepo, RefreshTokenRepo>();
+        builder.Services.AddScoped<IDataSeeding, DataSeeding>();
 
         #endregion Services
 
         var app = builder.Build();
+
+        using (var scoped = app.Services.CreateScope())
+        {
+            var objectOfDateSeed = scoped.ServiceProvider.GetRequiredService<IDataSeeding>();
+            await objectOfDateSeed.Seeding();
+            if (app.Environment.IsDevelopment())
+                await objectOfDateSeed.SeedingTestingTenant();
+        }
 
         #region Pipelines
 

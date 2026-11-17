@@ -5,6 +5,7 @@
         public void Configure(EntityTypeBuilder<ClinicClosedDate> builder)
         {
             builder.HasOne<TenantClinic>().WithMany().HasForeignKey(e => e.TenantId).OnDelete(DeleteBehavior.Restrict);
+            builder.HasIndex(e => new { e.TenantId, e.Date }).IsUnique();
         }
     }
 }

@@ -1,9 +1,6 @@
-﻿using DoctorPatientTracking.Domain.Abstractions;
-using DoctorPatientTracking.Persistence.Data;
-
-namespace DoctorPatientTracking.Persistence.Repositories
+﻿namespace DoctorPatientTracking.Persistence.Repositories
 {
-    public class RefreshToken(ApplicationDbContext _dbContext) : IRefreshToken
+    public class RefreshTokenRepo(ApplicationDbContext _dbContext) : IRefreshTokenRepo
     {
         public async Task AddAsync(string refreshToken, Guid id)
         {
@@ -31,7 +28,7 @@ namespace DoctorPatientTracking.Persistence.Repositories
             await _dbContext.SaveChangesAsync();
         }
 
-        async Task<Domain.Models.RefreshToken?> IRefreshToken.GetByTokenAsync(string token)
+        async Task<Domain.Models.RefreshToken?> IRefreshTokenRepo.GetByTokenAsync(string token)
             => await _dbContext.Set<Domain.Models.RefreshToken>()
             .Include(e => e.User).FirstOrDefaultAsync(e => e.Token == token);
     }

@@ -1,22 +1,16 @@
-﻿using DoctorPatientTracking.Domain.Abstractions;
-using DoctorPatientTracking.Domain.Exceptions;
-using DoctorPatientTracking.Domain.Models;
-using DoctorPatientTracking.Services.Factory;
-using DoctorPatientTracking.ServicesAbstraction.Contracts;
-using DoctorPatientTracking.Shared;
-using DoctorPatientTracking.Shared.Dtos;
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace DoctorPatientTracking.Services.Implementation
 {
     public class AuthenticationService(UserManager<ApplicationUser> _userManager,
-         IOptions<JWT> jwt, IRefreshToken _refreshToken) : IAuthenticationService
+         IOptions<JWT> jwt, IRefreshTokenRepo _refreshToken, ITenantProvider _tenant) : IAuthenticationService
     {
         public async Task<UserResultDto> Login(LoginDto user)
         {
@@ -41,16 +35,19 @@ namespace DoctorPatientTracking.Services.Implementation
 
         public async Task<UserResultDto> Register(RegisterDto user)
         {
+            if (!_tenant.HasTenant) throw new BadRequestException("Clinic not resolved");
             if (user.Password != user.ConfirmedPassword)
                 throw new ForbiddenException("Password not equal Confirmed Password");
             ApplicationUser originalUser = UserFactory.ToUser(user);
+            var phone = Regex.Replace(user.Phone, "[^0-9+]", "");
+            originalUser.UserName = $"{_tenant.TenantId:N}_{phone}";
             var result = await _userManager.CreateAsync(originalUser, user.Password);
             if (!result.Succeeded)
             {
                 var errors = string.Join(", ", result.Errors.Select(e => e.Description));
                 throw new BadRequestException($"Failed to register {user.FirstName} : {errors}");
             }
-            await _userManager.AddToRoleAsync(originalUser, "User");
+            await _userManager.AddToRoleAsync(originalUser, "Patient");
             string token = await CreateToken(originalUser);
 
             string refreshTokenn = CreateRefreshToken();
@@ -77,7 +74,8 @@ namespace DoctorPatientTracking.Services.Implementation
                 new Claim(ClaimTypes.NameIdentifier,user.Id.ToString()),
                 new Claim(ClaimTypes.Name,user.UserName??""),
                 new Claim(ClaimTypes.Email,user.Email??""),
-                new Claim(JwtRegisteredClaimNames.Jti,Guid.NewGuid().ToString())
+                new Claim(JwtRegisteredClaimNames.Jti,Guid.NewGuid().ToString()),
+                new Claim("tenant_id", user.TenantId.ToString()),
             };
 
             var roles = await _userManager.GetRolesAsync(user);

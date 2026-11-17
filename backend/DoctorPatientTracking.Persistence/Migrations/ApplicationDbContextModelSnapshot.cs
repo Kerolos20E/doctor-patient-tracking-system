@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace DoctorPatientTracking.Persistence.Data.Migrations
+namespace DoctorPatientTracking.Persistence.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
     partial class ApplicationDbContextModelSnapshot : ModelSnapshot
@@ -188,7 +188,8 @@ namespace DoctorPatientTracking.Persistence.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("TenantId");
+                    b.HasIndex("TenantId", "Date")
+                        .IsUnique();
 
                     b.ToTable("ClinicClosedDates");
                 });
@@ -430,6 +431,33 @@ namespace DoctorPatientTracking.Persistence.Data.Migrations
                     b.ToTable("Medicines");
                 });
 
+            modelBuilder.Entity("DoctorPatientTracking.Domain.Models.RefreshToken", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("ExpiresOnUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Token")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Token")
+                        .IsUnique();
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("RefreshToken");
+                });
+
             modelBuilder.Entity("DoctorPatientTracking.Domain.Models.TenantClinic", b =>
                 {
                     b.Property<Guid>("Id")
@@ -502,6 +530,9 @@ namespace DoctorPatientTracking.Persistence.Data.Migrations
                         .IsUnique();
 
                     b.HasIndex("PhoneNumber")
+                        .IsUnique();
+
+                    b.HasIndex("Subdomain")
                         .IsUnique();
 
                     b.ToTable("TenantClinics");
@@ -773,6 +804,17 @@ namespace DoctorPatientTracking.Persistence.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("ClinicQueue");
+                });
+
+            modelBuilder.Entity("DoctorPatientTracking.Domain.Models.RefreshToken", b =>
+                {
+                    b.HasOne("DoctorPatientTracking.Domain.Models.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>

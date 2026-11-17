@@ -1,0 +1,45 @@
+﻿using DoctorPatientTracking.Shared.Enums;
+using Microsoft.AspNetCore.Identity;
+
+namespace DoctorPatientTracking.Persistence.Data
+{
+    public class DataSeeding(ApplicationDbContext _dbContext, UserManager<ApplicationUser> _userManager
+        , RoleManager<IdentityRole<Guid>> _roleManager) : IDataSeeding
+    {
+        public async Task Seeding()
+        {
+            if (_dbContext.Database.GetPendingMigrations().Any())
+                await _dbContext.Database.MigrateAsync();
+            await SeedingRoles();
+        }
+
+        private async Task SeedingRoles()
+        {
+            if (await _roleManager.Roles.AnyAsync()) return;
+            await _roleManager.CreateAsync(new("Patient"));
+            await _roleManager.CreateAsync(new("Secretary"));
+            await _roleManager.CreateAsync(new("Doctor"));
+        }
+
+        async Task IDataSeeding.SeedingTestingTenant()
+        {
+            if (await _dbContext.TenantClinics.AnyAsync(e => e.Subdomain == "test")) return;
+            var tenant = new TenantClinic()
+            {
+                Id = Guid.CreateVersion7(),
+                NameOfClinic = "عيادة تجريبية",
+                Governorate = "سوهاج",
+                City = "سوهاج",
+                Specialty = "باطنة",
+                Status = TenantStatus.Active,
+                Subdomain = "test",
+                SubscriptionExpiryDate = new DateOnly(2027, 12, 31),
+                PhoneNumber = "01000000000",
+                Email = "clinic@test.com",
+                AddressLocationUrl = "https://maps.app.goo.gl/BNnryizvSt5AwQ7K7",
+            };
+            await _dbContext.AddAsync(tenant);
+            await _dbContext.SaveChangesAsync();
+        }
+    }
+}

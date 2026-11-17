@@ -18,6 +18,7 @@
             builder.Property(e => e.Email).HasMaxLength(300);
             builder.HasIndex(e => e.Email).IsUnique();
             builder.HasIndex(e => e.PhoneNumber).IsUnique();
+            builder.HasIndex(e => e.Subdomain).IsUnique();
         }
     }
 }
