@@ -1,3 +1,4 @@
+using Scalar.AspNetCore;
 
 namespace DoctorPatientTracking.API;
 
@@ -7,26 +8,30 @@ public class Program
     {
         var builder = WebApplication.CreateBuilder(args);
 
-        // Add services to the container.
+        #region Services
 
         builder.Services.AddControllers();
-        // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
         builder.Services.AddOpenApi();
+
+        #endregion Services
 
         var app = builder.Build();
 
-        // Configure the HTTP request pipeline.
+        #region Pipelines
+
         if (app.Environment.IsDevelopment())
         {
             app.MapOpenApi();
+            app.MapScalarApiReference();
         }
 
         app.UseHttpsRedirection();
 
         app.UseAuthorization();
 
-
         app.MapControllers();
+
+        #endregion Pipelines
 
         app.Run();
     }
