@@ -1,0 +1,103 @@
+﻿using DoctorPatientTracking.Domain.Abstractions;
+using DoctorPatientTracking.Domain.Exceptions;
+using DoctorPatientTracking.Domain.Models;
+using DoctorPatientTracking.Services.Factory;
+using DoctorPatientTracking.ServicesAbstraction.Contracts;
+using DoctorPatientTracking.Shared;
+using DoctorPatientTracking.Shared.Dtos;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Security.Cryptography;
+using System.Text;
+
+namespace DoctorPatientTracking.Services.Implementation
+{
+    public class AuthenticationService(UserManager<ApplicationUser> _userManager,
+         IOptions<JWT> jwt, IRefreshToken _refreshToken) : IAuthenticationService
+    {
+        public async Task<UserResultDto> Login(LoginDto user)
+        {
+            var currentuser = await _userManager.FindByEmailAsync(user.Email);
+            if (currentuser is null)
+                throw new UnauthenticationException("Password or Emial is Wrong");
+
+            if (!await _userManager.CheckPasswordAsync(currentuser, user.Password))
+                throw new UnauthenticationException("Password or Emial is Wrong");
+
+            var originUser = await _userManager.FindByEmailAsync(user.Email);
+            if (originUser is null)
+                throw new Exception("");
+
+            string token = await CreateToken(originUser);
+
+            string refreshTokenn = CreateRefreshToken();
+            await _refreshToken.AddAsync(refreshTokenn, currentuser.Id);
+
+            return new(token, refreshTokenn);
+        }
+
+        public async Task<UserResultDto> Register(RegisterDto user)
+        {
+            if (user.Password != user.ConfirmedPassword)
+                throw new ForbiddenException("Password not equal Confirmed Password");
+            ApplicationUser originalUser = UserFactory.ToUser(user);
+            var result = await _userManager.CreateAsync(originalUser, user.Password);
+            if (!result.Succeeded)
+            {
+                var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+                throw new BadRequestException($"Failed to register {user.FirstName} : {errors}");
+            }
+            await _userManager.AddToRoleAsync(originalUser, "User");
+            string token = await CreateToken(originalUser);
+
+            string refreshTokenn = CreateRefreshToken();
+            await _refreshToken.AddAsync(refreshTokenn, originalUser.Id);
+            return new(token, refreshTokenn);
+        }
+
+        public async Task<UserResultDto> LoginWithRefreshToken(string refreshToken)
+        {
+            var refresh = await _refreshToken.GetByTokenAsync(refreshToken);
+            if (refresh is null || refresh.ExpiresOnUtc < DateTime.UtcNow)
+                throw new BadRequestException("The refresh token has expired");
+
+            string token = await CreateToken(refresh.User);
+            await _refreshToken.UpdateAsync(refresh, CreateRefreshToken());
+            return new(token, refresh.Token);
+        }
+
+        private async Task<string> CreateToken(ApplicationUser user)
+        {
+            var JwtOptions = jwt.Value;
+            var Claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.NameIdentifier,user.Id.ToString()),
+                new Claim(ClaimTypes.Name,user.UserName??""),
+                new Claim(ClaimTypes.Email,user.Email??""),
+                new Claim(JwtRegisteredClaimNames.Jti,Guid.NewGuid().ToString())
+            };
+
+            var roles = await _userManager.GetRolesAsync(user);
+            Claims.AddRange(roles.Select(e => new Claim(ClaimTypes.Role, e)));
+
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(JwtOptions.SecretKey));
+            var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+            var token = new JwtSecurityToken(
+                issuer: JwtOptions.Issuer,
+                audience: JwtOptions.Audience,
+                claims: Claims,
+                notBefore: DateTime.UtcNow,
+                expires: DateTime.UtcNow.AddMinutes(JwtOptions.ExpirationInMinutes),
+                signingCredentials: credentials
+                );
+            return new JwtSecurityTokenHandler().WriteToken(token);
+        }
+
+        private string CreateRefreshToken()
+            => Convert.ToBase64String(RandomNumberGenerator.GetBytes(32));
+    }
+}
