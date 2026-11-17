@@ -2,7 +2,7 @@
 
 namespace DoctorPatientTracking.Domain.Models
 {
-    internal class ClinicService : IHaveTenant
+    public class ClinicService : IHaveTenant
     {
         public Guid TenantId { get; set; }
         public Guid Id { get; set; }
@@ -12,6 +12,6 @@ namespace DoctorPatientTracking.Domain.Models
 
         public decimal Price { get; set; }
         public int? DurationInMinutes { get; set; }
-        public bool IsActive { get; set; }
+        public bool IsActive { get; set; } = true;
     }
 }

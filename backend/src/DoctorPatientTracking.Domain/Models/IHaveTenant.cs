@@ -1,6 +1,6 @@
 ﻿namespace DoctorPatientTracking.Domain.Models
 {
-    internal interface IHaveTenant
+    public interface IHaveTenant
     {
         Guid TenantId { get; set; }
     }

@@ -1,3 +1,7 @@
+using DoctorPatientTracking.API.Tenant;
+using DoctorPatientTracking.Domain.Abstractions;
+using DoctorPatientTracking.Persistence.Data;
+using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
 
 namespace DoctorPatientTracking.API;
@@ -12,6 +16,10 @@ public class Program
 
         builder.Services.AddControllers();
         builder.Services.AddOpenApi();
+        builder.Services.AddMemoryCache();
+        builder.Services.AddScoped<ITenantProvider, TenantProvider>();
+        builder.Services.AddDbContext<ApplicationDbContext>(e =>
+            e.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
         #endregion Services
 
@@ -26,7 +34,9 @@ public class Program
         }
 
         app.UseHttpsRedirection();
-
+        app.UseStaticFiles();
+        app.UseMiddleware<TenantResolutionMiddleware>();
+        app.UseAuthentication();
         app.UseAuthorization();
 
         app.MapControllers();

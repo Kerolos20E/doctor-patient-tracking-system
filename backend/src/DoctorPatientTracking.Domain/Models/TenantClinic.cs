@@ -15,7 +15,7 @@ namespace DoctorPatientTracking.Domain.Models
         public TenantStatus Status { get; set; } = TenantStatus.Active;
         public string Subdomain { get; set; } = string.Empty;
         public DateOnly SubscriptionExpiryDate { get; set; }
-        public DateOnly CreatedAt { get; set; }
+        public DateTime CreatedAt { get; set; }
         public string PhoneNumber { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
     }

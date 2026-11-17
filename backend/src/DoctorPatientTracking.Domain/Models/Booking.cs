@@ -6,6 +6,7 @@ namespace DoctorPatientTracking.Domain.Models
     {
         public Guid TenantId { get; set; }
         public Guid Id { get; set; }
+        public ClinicQueue ClinicQueue { get; set; } = default!;
         public Guid ClinicQueueId { get; set; }
 
         public PaymentMethod PaymentMethod { get; set; } = PaymentMethod.Cash;

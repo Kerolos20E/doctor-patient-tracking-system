@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Identity;
 
 namespace DoctorPatientTracking.Domain.Models
 {
-    internal class ApplicationUsers : IdentityUser<Guid>, IHaveTenant
+    public class ApplicationUser : IdentityUser<Guid>, IHaveTenant
     {
         public Guid TenantId { get; set; }
         public string FirstName { get; set; } = string.Empty;
@@ -15,5 +15,6 @@ namespace DoctorPatientTracking.Domain.Models
 
         public DateOnly BirthDate { get; set; }
         public DateTime CreatedAt { get; set; }
+        public ICollection<ClinicQueue> ClinicQueues { get; set; } = [];
     }
 }
