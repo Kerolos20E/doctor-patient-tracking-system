@@ -1,3 +1,8 @@
+using DoctorPatientTracking.API.Tenant;
+using DoctorPatientTracking.Domain.Abstractions;
+using DoctorPatientTracking.Persistence.Data;
+using Microsoft.EntityFrameworkCore;
+using Scalar.AspNetCore;
 
 namespace DoctorPatientTracking.API;
 
@@ -7,26 +12,36 @@ public class Program
     {
         var builder = WebApplication.CreateBuilder(args);
 
-        // Add services to the container.
+        #region Services
 
         builder.Services.AddControllers();
-        // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
         builder.Services.AddOpenApi();
+        builder.Services.AddMemoryCache();
+        builder.Services.AddScoped<ITenantProvider, TenantProvider>();
+        builder.Services.AddDbContext<ApplicationDbContext>(e =>
+            e.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+        #endregion Services
 
         var app = builder.Build();
 
-        // Configure the HTTP request pipeline.
+        #region Pipelines
+
         if (app.Environment.IsDevelopment())
         {
             app.MapOpenApi();
+            app.MapScalarApiReference();
         }
 
         app.UseHttpsRedirection();
-
+        app.UseStaticFiles();
+        app.UseMiddleware<TenantResolutionMiddleware>();
+        app.UseAuthentication();
         app.UseAuthorization();
 
-
         app.MapControllers();
+
+        #endregion Pipelines
 
         app.Run();
     }
