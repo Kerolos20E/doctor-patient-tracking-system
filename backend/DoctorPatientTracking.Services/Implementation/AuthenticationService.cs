@@ -1,4 +1,5 @@
-﻿using DoctorPatientTracking.Shared.Dtos.User;
+﻿using DoctorPatientTracking.Shared.Dtos.Result;
+using DoctorPatientTracking.Shared.Dtos.User;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -13,7 +14,7 @@ namespace DoctorPatientTracking.Services.Implementation
     public class AuthenticationService(UserManager<ApplicationUser> _userManager,
          IOptions<JWT> jwt, IRefreshTokenRepo _refreshToken, ITenantProvider _tenant) : IAuthenticationService
     {
-        public async Task<UserResultDto> Login(LoginDto user)
+        public async Task<ApiResponse<UserResultDto>> Login(LoginDto user)
         {
             var currentuser = await _userManager.FindByEmailAsync(user.Email);
             if (currentuser is null)
@@ -31,10 +32,10 @@ namespace DoctorPatientTracking.Services.Implementation
             string refreshTokenn = CreateRefreshToken();
             await _refreshToken.AddAsync(refreshTokenn, currentuser.Id);
 
-            return new(token, refreshTokenn);
+            return ApiResponse<UserResultDto>.Success(new(token, refreshTokenn), "");
         }
 
-        public async Task<UserResultDto> Register(RegisterDto user)
+        public async Task<ApiResponse<UserResultDto>> Register(RegisterDto user)
         {
             if (!_tenant.HasTenant) throw new BadRequestException("Clinic not resolved");
             if (user.Password != user.ConfirmedPassword)
@@ -53,10 +54,10 @@ namespace DoctorPatientTracking.Services.Implementation
 
             string refreshTokenn = CreateRefreshToken();
             await _refreshToken.AddAsync(refreshTokenn, originalUser.Id);
-            return new(token, refreshTokenn);
+            return ApiResponse<UserResultDto>.Success(new(token, refreshTokenn), "");
         }
 
-        public async Task<UserResultDto> LoginWithRefreshToken(string refreshToken)
+        public async Task<ApiResponse<UserResultDto>> LoginWithRefreshToken(string refreshToken)
         {
             var refresh = await _refreshToken.GetByTokenAsync(refreshToken);
             if (refresh is null || refresh.ExpiresOnUtc < DateTime.UtcNow)
@@ -64,7 +65,7 @@ namespace DoctorPatientTracking.Services.Implementation
 
             string token = await CreateToken(refresh.User);
             await _refreshToken.UpdateAsync(refresh, CreateRefreshToken());
-            return new(token, refresh.Token);
+            return ApiResponse<UserResultDto>.Success(new(token, refresh.Token), "");
         }
 
         private async Task<string> CreateToken(ApplicationUser user)

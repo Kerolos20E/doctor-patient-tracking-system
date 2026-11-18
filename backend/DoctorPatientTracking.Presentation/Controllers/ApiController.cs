@@ -1,0 +1,17 @@
+﻿using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
+
+namespace DoctorPatientTracking.Presentation.Controllers
+{
+    [ApiController]
+    [Route("api/[controller]")]
+    public class ApiController : ControllerBase
+    {
+        protected internal Guid? GetCurrentUserId()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            return Guid.TryParse(userId, out var id) ? id : null;
+        }
+    }
+}
