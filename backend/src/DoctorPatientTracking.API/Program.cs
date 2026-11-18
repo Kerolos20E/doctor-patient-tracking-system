@@ -1,6 +1,7 @@
 using DoctorPatientTracking.API.Tenant;
 using DoctorPatientTracking.Domain.Abstractions;
 using DoctorPatientTracking.Domain.Models;
+using DoctorPatientTracking.Persistence;
 using DoctorPatientTracking.Persistence.Data;
 using DoctorPatientTracking.Persistence.Repositories;
 using DoctorPatientTracking.Services.Implementation;
@@ -92,6 +93,7 @@ public class Program
 
         app.UseHttpsRedirection();
         app.UseStaticFiles();
+        app.UseMiddleware<GlobalExceptionMiddleware>();
         app.UseMiddleware<TenantResolutionMiddleware>();
         app.UseAuthentication();
         app.UseAuthorization();
