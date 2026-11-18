@@ -1,5 +1,4 @@
-﻿using DoctorPatientTracking.Shared.Dtos.Result;
-using DoctorPatientTracking.Shared.Dtos.User;
+﻿using DoctorPatientTracking.Shared.Dtos.User;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;

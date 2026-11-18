@@ -1,6 +1,4 @@
-﻿using DoctorPatientTracking.Services.Specifications;
-using DoctorPatientTracking.Shared.Dtos.ClinicService;
-using DoctorPatientTracking.Shared.Dtos.Result;
+﻿using DoctorPatientTracking.Shared.Dtos.ClinicService;
 
 namespace DoctorPatientTracking.Services.Implementation
 {

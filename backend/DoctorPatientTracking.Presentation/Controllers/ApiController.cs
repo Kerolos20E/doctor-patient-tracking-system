@@ -1,5 +1,9 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
+﻿global using DoctorPatientTracking.ServicesAbstraction.Contracts;
+global using DoctorPatientTracking.Shared.Dtos.ClinicService;
+global using DoctorPatientTracking.Shared.Dtos.Result;
+global using Microsoft.AspNetCore.Authorization;
+global using Microsoft.AspNetCore.Mvc;
+global using System.Security.Claims;
 
 namespace DoctorPatientTracking.Presentation.Controllers
 {

@@ -1,5 +1,4 @@
-﻿using DoctorPatientTracking.Shared.Dtos.Result;
-using DoctorPatientTracking.Shared.Dtos.TimeWork;
+﻿using DoctorPatientTracking.Shared.Dtos.TimeWork;
 
 namespace DoctorPatientTracking.ServicesAbstraction.Contracts
 {

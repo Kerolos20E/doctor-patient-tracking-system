@@ -1,9 +1,4 @@
-﻿using DoctorPatientTracking.ServicesAbstraction.Contracts;
-using DoctorPatientTracking.Shared.Dtos.ClinicService;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-
-namespace DoctorPatientTracking.Presentation.Controllers
+﻿namespace DoctorPatientTracking.Presentation.Controllers
 {
     [Authorize(Roles = "Doctor")]
     public class ClinicServiceController(IClinicService _service) : ApiController

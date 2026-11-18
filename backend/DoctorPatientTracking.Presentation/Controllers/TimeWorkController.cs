@@ -1,9 +1,8 @@
-﻿using DoctorPatientTracking.ServicesAbstraction.Contracts;
-using DoctorPatientTracking.Shared.Dtos.TimeWork;
-using Microsoft.AspNetCore.Mvc;
+﻿using DoctorPatientTracking.Shared.Dtos.TimeWork;
 
 namespace DoctorPatientTracking.Presentation.Controllers
 {
+    [Authorize(Roles = "Doctor")]
     public class TimeWorkController(ITimeOfWork _service) : ApiController
     {
         [HttpPost]

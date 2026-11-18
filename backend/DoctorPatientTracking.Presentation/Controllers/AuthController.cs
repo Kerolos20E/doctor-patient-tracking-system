@@ -1,7 +1,4 @@
-﻿using DoctorPatientTracking.ServicesAbstraction.Contracts;
-using DoctorPatientTracking.Shared.Dtos.Result;
-using DoctorPatientTracking.Shared.Dtos.User;
-using Microsoft.AspNetCore.Mvc;
+﻿using DoctorPatientTracking.Shared.Dtos.User;
 
 namespace DoctorPatientTracking.Presentation.Controllers
 {
