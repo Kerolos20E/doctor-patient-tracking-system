@@ -17,7 +17,7 @@ namespace DoctorPatientTracking.Presentation.Controllers
             => Ok(await _service.UpdateService(dto, id));
 
         [HttpDelete("Delete/{id:guid}")]
-        public async Task<ActionResult<ClinicServiceDto>> Delete(Guid id)
+        public async Task<ActionResult<bool>> Delete(Guid id)
             => Ok(await _service.DeleteService(id));
 
         [HttpGet("Get/{id:guid}")]
