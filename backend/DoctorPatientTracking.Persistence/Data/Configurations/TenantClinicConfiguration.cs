@@ -1,8 +1,4 @@
-﻿using DoctorPatientTracking.Domain.Models;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
-
-namespace DoctorPatientTracking.Persistence.Data.Configurations
+﻿namespace DoctorPatientTracking.Persistence.Data.Configurations
 {
     internal class TenantClinicConfiguration : IEntityTypeConfiguration<TenantClinic>
     {
@@ -22,6 +18,7 @@ namespace DoctorPatientTracking.Persistence.Data.Configurations
             builder.Property(e => e.Email).HasMaxLength(300);
             builder.HasIndex(e => e.Email).IsUnique();
             builder.HasIndex(e => e.PhoneNumber).IsUnique();
+            builder.HasIndex(e => e.Subdomain).IsUnique();
         }
     }
 }

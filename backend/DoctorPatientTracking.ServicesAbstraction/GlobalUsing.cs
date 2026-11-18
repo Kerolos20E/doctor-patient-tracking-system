@@ -1,0 +1,1 @@
+﻿global using DoctorPatientTracking.Shared.Dtos;

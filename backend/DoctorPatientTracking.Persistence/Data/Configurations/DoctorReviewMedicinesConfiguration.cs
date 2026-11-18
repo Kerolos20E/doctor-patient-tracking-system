@@ -1,8 +1,4 @@
-﻿using DoctorPatientTracking.Domain.Models;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
-
-namespace DoctorPatientTracking.Persistence.Data.Configurations
+﻿namespace DoctorPatientTracking.Persistence.Data.Configurations
 {
     internal class DoctorReviewMedicinesConfiguration : IEntityTypeConfiguration<DoctorReviewMedicine>
     {
