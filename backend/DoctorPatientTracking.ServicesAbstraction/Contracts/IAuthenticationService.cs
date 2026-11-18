@@ -1,4 +1,6 @@
-﻿namespace DoctorPatientTracking.ServicesAbstraction.Contracts
+﻿using DoctorPatientTracking.Shared.Dtos.User;
+
+namespace DoctorPatientTracking.ServicesAbstraction.Contracts
 {
     public interface IAuthenticationService
     {

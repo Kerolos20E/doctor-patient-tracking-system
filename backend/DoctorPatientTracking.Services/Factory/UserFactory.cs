@@ -1,4 +1,6 @@
-﻿namespace DoctorPatientTracking.Services.Factory
+﻿using DoctorPatientTracking.Shared.Dtos.User;
+
+namespace DoctorPatientTracking.Services.Factory
 {
     public static class UserFactory
     {

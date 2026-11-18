@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace DoctorPatientTracking.Shared.Dtos
+namespace DoctorPatientTracking.Shared.Dtos.User
 {
     public record LoginDto
     {
