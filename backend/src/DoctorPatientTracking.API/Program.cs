@@ -70,6 +70,8 @@ public class Program
         builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
         builder.Services.AddScoped<IRefreshTokenRepo, RefreshTokenRepo>();
         builder.Services.AddScoped<IDataSeeding, DataSeeding>();
+        builder.Services.AddScoped<IClinicService, ClinicServiceService>();
+        builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
         #endregion Services
 

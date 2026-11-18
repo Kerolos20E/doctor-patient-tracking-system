@@ -41,15 +41,18 @@ namespace DoctorPatientTracking.Domain.Abstractions.Specifications
 
         #region Pagenation
 
-        public int Take { get; private set; } = 10;
+        public int Take { get; private set; }
         public int Skip { get; private set; }
         public bool IsPagenation { get; private set; }
+        private const int MaxPageSize = 10;
 
-        public void ApplyPagenation(int pageNumber)
+        public void ApplyPagenation(int? pageNumber, int? pageSize)
         {
-            if (pageNumber <= 0) pageNumber = 1;
+            if (!pageNumber.HasValue || pageNumber <= 0) pageNumber = 1;
+            if (!pageSize.HasValue || pageSize <= 10 || pageSize > MaxPageSize) pageSize = MaxPageSize;
             IsPagenation = true;
-            Skip = (pageNumber - 1) * 10;
+            Skip = (pageNumber.Value - 1) * pageSize.Value;
+            Take = pageSize.Value;
         }
 
         #endregion Pagenation
