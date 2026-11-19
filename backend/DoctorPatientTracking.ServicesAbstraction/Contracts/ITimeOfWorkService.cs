@@ -2,7 +2,7 @@
 
 namespace DoctorPatientTracking.ServicesAbstraction.Contracts
 {
-    public interface ITimeOfWork
+    public interface ITimeOfWorkService
     {
         Task<ApiResponse<DaysTimeWorkDto>> Add(CreateOrUpdateDaysTimeWorkDto dto);
 

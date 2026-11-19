@@ -72,8 +72,10 @@ public class Program
         builder.Services.AddScoped<IDataSeeding, DataSeeding>();
         builder.Services.AddScoped<IClinicService, ClinicServiceService>();
         builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
-        builder.Services.AddScoped<ITimeOfWork, TimeOfWorkService>();
+        builder.Services.AddScoped<ITimeOfWorkService, TimeOfWorkService>();
         builder.Services.AddScoped<IDaysTimeWorkRepo, DaysTimeWorkRepo>();
+        builder.Services.AddScoped<IHolidaysService, HolidaysService>();
+        builder.Services.AddScoped<IHolidaysRepo, HolidaysRepo>();
 
         #endregion Services
 

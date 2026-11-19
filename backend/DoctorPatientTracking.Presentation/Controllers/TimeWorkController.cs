@@ -3,7 +3,7 @@
 namespace DoctorPatientTracking.Presentation.Controllers
 {
     [Authorize(Roles = "Doctor")]
-    public class TimeWorkController(ITimeOfWork _service) : ApiController
+    public class TimeWorkController(ITimeOfWorkService _service) : ApiController
     {
         [HttpPost]
         public async Task<ActionResult<DaysTimeWorkDto>> Create(CreateOrUpdateDaysTimeWorkDto dto)

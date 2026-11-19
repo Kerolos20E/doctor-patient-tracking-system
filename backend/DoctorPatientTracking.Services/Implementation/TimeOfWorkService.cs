@@ -2,7 +2,7 @@
 
 namespace DoctorPatientTracking.Services.Implementation
 {
-    public class TimeOfWorkService(IUnitOfWork _unitOfWork, IDaysTimeWorkRepo _workRepo) : ITimeOfWork
+    public class TimeOfWorkService(IUnitOfWork _unitOfWork, IDaysTimeWorkRepo _workRepo) : ITimeOfWorkService
     {
         public async Task<ApiResponse<DaysTimeWorkDto>> Add(CreateOrUpdateDaysTimeWorkDto dto)
         {
@@ -46,6 +46,13 @@ namespace DoctorPatientTracking.Services.Implementation
         {
             var model = await _unitOfWork.GetGenericRepo<DaysTimeWork>().GetByIdAsync(id) ??
                  throw new NotFoundException("Not found Date with this id.");
+            if (dto.StartTime > dto.EndTime)
+                throw new ForbiddenException($"Start time :{dto.StartTime} after then End time :{dto.EndTime}.");
+            var duration = dto.EndTime - dto.StartTime;
+            if (duration.Hours < 2)
+                throw new BadRequestException("At least 2 Hours.");
+            if (await _workRepo.CheckInterval(dto))
+                throw new ForbiddenException("At least one intersect.");
             Update(ref model, dto);
             _unitOfWork.GetGenericRepo<DaysTimeWork>().Update(model);
             await _unitOfWork.SaveChanagesAsync();
