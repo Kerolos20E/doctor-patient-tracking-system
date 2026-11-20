@@ -2,7 +2,7 @@
 
 A multi-tenant backend for managing private clinics — built with **ASP.NET Core 10**, **Entity Framework Core**, and **SQL Server**. Each clinic runs on its own subdomain, with isolated data, staff (doctors and secretaries), working hours, holidays, and services.
 
-The repository currently contains the backend API; the `frontend/` folder is reserved for the client application.
+The repository currently contains the `backend` API; the `frontend` folder is reserved for the client application.
 
 ---
 
