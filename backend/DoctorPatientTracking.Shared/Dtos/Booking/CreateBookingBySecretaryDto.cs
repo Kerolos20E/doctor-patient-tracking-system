@@ -8,7 +8,6 @@ namespace DoctorPatientTracking.Shared.Dtos.Booking
         public Guid ClinicServiceId { get; init; }
         public DateOnly AppointmentDate { get; init; }
 
-        // Optional details for new/walk-in patient auto-registration
         public string? FirstName { get; init; }
         public string? LastName { get; init; }
         public Gender? Gender { get; init; }
