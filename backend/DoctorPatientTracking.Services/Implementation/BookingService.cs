@@ -29,7 +29,8 @@ namespace DoctorPatientTracking.Services.Implementation
             if (!workingDays.Any(w => w.Day == bookingDay))
                 throw new BadRequestException($"The clinic is closed on {bookingDay}.");
 
-            var service = await _unitOfWork.GetGenericRepo<ClinicService>().GetByIdAsync(dto.ClinicServiceId) ??
+            var service = await _unitOfWork.GetGenericRepo<ClinicService>().GetByIdAsync(dto.ClinicServiceId);
+            if (service is null)
                 throw new NotFoundException("Clinic service not found.");
             if (!service.IsActive)
                 throw new BadRequestException("This clinic service is currently inactive.");
@@ -110,6 +111,41 @@ namespace DoctorPatientTracking.Services.Implementation
 
             var result = BookingFactory.ToBookingResultDto(booking, queue, patient, service);
             return ApiResponse<BookingResultDto>.Success(result, "Booking created successfully.");
+        }
+
+        public async Task<ApiResponse<bool>> CancelBookingByPatient(Guid bookingId, Guid patientId)
+        {
+            if (!_tenant.HasTenant)
+                throw new BadRequestException("Clinic not resolved.");
+
+            var spec = new BookingWithQueueSpecification(bookingId);
+            var booking = await _unitOfWork.GetGenericRepo<Booking>().GetByIdAsync(spec) ??
+                throw new NotFoundException("Booking not found.");
+
+            if (booking.ClinicQueue.PatientId != patientId)
+                throw new ForbiddenException("You are not authorized to cancel this booking.");
+
+            if (booking.Status == BookingStatus.Cancelled || booking.ClinicQueue.Status == ClinicQueueStatus.Cancelled)
+                throw new BadRequestException("This booking is already cancelled.");
+
+            if (booking.ClinicQueue.Status == ClinicQueueStatus.Completed)
+                throw new BadRequestException("Cannot cancel a completed appointment.");
+
+            if (booking.ClinicQueue.Status == ClinicQueueStatus.InProgress)
+                throw new BadRequestException("Cannot cancel an appointment that is currently in progress.");
+
+            var today = DateOnly.FromDateTime(DateTime.UtcNow);
+            if (booking.ClinicQueue.AppointmentDate < today)
+                throw new BadRequestException("Cannot cancel a past appointment.");
+
+            booking.Status = BookingStatus.Cancelled;
+            booking.ClinicQueue.Status = ClinicQueueStatus.Cancelled;
+
+            _unitOfWork.GetGenericRepo<Booking>().Update(booking);
+            _unitOfWork.GetGenericRepo<ClinicQueue>().Update(booking.ClinicQueue);
+            await _unitOfWork.SaveChanagesAsync();
+
+            return ApiResponse<bool>.Success(true, "Booking cancelled successfully.");
         }
 
         private static Days MapToClinicDay(DayOfWeek dayOfWeek) => dayOfWeek switch
