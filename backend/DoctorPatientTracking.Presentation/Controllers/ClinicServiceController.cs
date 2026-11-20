@@ -1,7 +1,7 @@
 ﻿namespace DoctorPatientTracking.Presentation.Controllers
 {
     [Authorize(Roles = "Doctor")]
-    public class ClinicServiceController(IClinicServiceService _service) : ApiController
+    public class ClinicServiceController(IClinicServiceService _service, ISecretaryService _secretary) : ApiController
     {
         [HttpPost]
         public async Task<ActionResult<ClinicServiceDto>> Create(CreteClinicServiceDto dto)
@@ -22,5 +22,17 @@
         [HttpGet("GetAll")]
         public async Task<ActionResult<ClinicServiceDto>> GetAll(int? pageIndex, int? pageSize)
            => Ok(await _service.GetAllService(pageIndex, pageSize));
+
+        [HttpGet("SearchSecretary")]
+        public async Task<ActionResult<SecretaryDto>> SearchSecretary(string phone)
+            => Ok(await _secretary.SearchSecretary(phone));
+
+        [HttpPost("AddSecretary")]
+        public async Task<ActionResult<SecretaryDto>> AddSecretary(AddSecretaryDto dto)
+            => Ok(await _secretary.AddSecretary(dto));
+
+        [HttpDelete("RemoveSecretary")]
+        public async Task<ActionResult<SecretaryDto>> RemoveSecretary(string phone)
+            => Ok(await _secretary.RemoveSecretary(phone));
     }
 }
