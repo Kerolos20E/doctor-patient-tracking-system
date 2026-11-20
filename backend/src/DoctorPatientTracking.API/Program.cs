@@ -78,6 +78,7 @@ public class Program
         builder.Services.AddScoped<IDaysTimeWorkRepo, DaysTimeWorkRepo>();
         builder.Services.AddScoped<IHolidaysService, HolidaysService>();
         builder.Services.AddScoped<IHolidaysRepo, HolidaysRepo>();
+        builder.Services.AddScoped<IBookingService, BookingService>();
 
         #endregion Services
 
