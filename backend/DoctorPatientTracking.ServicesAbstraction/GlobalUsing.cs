@@ -1,1 +1,1 @@
-﻿global using DoctorPatientTracking.Shared.Dtos;
+﻿global using DoctorPatientTracking.Shared.Dtos.Result;

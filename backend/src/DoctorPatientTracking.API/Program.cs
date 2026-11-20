@@ -70,6 +70,14 @@ public class Program
         builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
         builder.Services.AddScoped<IRefreshTokenRepo, RefreshTokenRepo>();
         builder.Services.AddScoped<IDataSeeding, DataSeeding>();
+        builder.Services.AddScoped<IClinicServiceService, ClinicServiceService>();
+        builder.Services.AddScoped<IClinicService, ClinicDetailsService>();
+        builder.Services.AddScoped<ISecretaryService, SecretaryService>();
+        builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+        builder.Services.AddScoped<ITimeOfWorkService, TimeOfWorkService>();
+        builder.Services.AddScoped<IDaysTimeWorkRepo, DaysTimeWorkRepo>();
+        builder.Services.AddScoped<IHolidaysService, HolidaysService>();
+        builder.Services.AddScoped<IHolidaysRepo, HolidaysRepo>();
 
         #endregion Services
 

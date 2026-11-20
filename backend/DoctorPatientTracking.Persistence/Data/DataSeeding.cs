@@ -19,6 +19,7 @@ namespace DoctorPatientTracking.Persistence.Data
             await _roleManager.CreateAsync(new("Patient"));
             await _roleManager.CreateAsync(new("Secretary"));
             await _roleManager.CreateAsync(new("Doctor"));
+            await _dbContext.SaveChangesAsync();
         }
 
         async Task IDataSeeding.SeedingTestingTenant()
@@ -38,7 +39,21 @@ namespace DoctorPatientTracking.Persistence.Data
                 Email = "clinic@test.com",
                 AddressLocationUrl = "https://maps.app.goo.gl/BNnryizvSt5AwQ7K7",
             };
+            var doctor = new ApplicationUser()
+            {
+                BirthDate = new DateOnly(1995, 5, 15),
+                PhoneNumber = "01000000000",
+                Email = "clinic@test.com",
+                FirstName = "Doctor",
+                LastName = "Test",
+                Gender = Gender.Male,
+                TenantId = tenant.Id,
+                Id = Guid.CreateVersion7(),
+                UserName = "DoctorTest"
+            };
             await _dbContext.AddAsync(tenant);
+            await _userManager.CreateAsync(doctor, "P@ssw0rd");
+            await _userManager.AddToRoleAsync(doctor, "Doctor");
             await _dbContext.SaveChangesAsync();
         }
     }
