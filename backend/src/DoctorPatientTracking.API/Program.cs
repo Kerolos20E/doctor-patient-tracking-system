@@ -70,7 +70,8 @@ public class Program
         builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
         builder.Services.AddScoped<IRefreshTokenRepo, RefreshTokenRepo>();
         builder.Services.AddScoped<IDataSeeding, DataSeeding>();
-        builder.Services.AddScoped<IClinicService, ClinicServiceService>();
+        builder.Services.AddScoped<IClinicServiceService, ClinicServiceService>();
+        builder.Services.AddScoped<IClinicService, ClinicDetailsService>();
         builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
         builder.Services.AddScoped<ITimeOfWorkService, TimeOfWorkService>();
         builder.Services.AddScoped<IDaysTimeWorkRepo, DaysTimeWorkRepo>();

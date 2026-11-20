@@ -1,7 +1,7 @@
 ﻿namespace DoctorPatientTracking.Presentation.Controllers
 {
     [Authorize(Roles = "Doctor")]
-    public class ClinicServiceController(IClinicService _service) : ApiController
+    public class ClinicServiceController(IClinicServiceService _service) : ApiController
     {
         [HttpPost]
         public async Task<ActionResult<ClinicServiceDto>> Create(CreteClinicServiceDto dto)

@@ -2,7 +2,7 @@
 
 namespace DoctorPatientTracking.Services.Implementation
 {
-    public class ClinicServiceService(IUnitOfWork _unitOfWork) : IClinicService
+    public class ClinicServiceService(IUnitOfWork _unitOfWork) : IClinicServiceService
     {
         public async Task<ApiResponse<ClinicServiceDto>> AddService(CreteClinicServiceDto dto)
         {
