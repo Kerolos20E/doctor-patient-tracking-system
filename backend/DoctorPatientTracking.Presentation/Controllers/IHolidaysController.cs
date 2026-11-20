@@ -5,19 +5,16 @@ namespace DoctorPatientTracking.Presentation.Controllers
     public class HolidaysController(IHolidaysService _service) : ApiController
     {
         [HttpPost]
-        [Authorize(Roles = "Doctor")]
-        [Authorize(Roles = "Secretary")]
+        [Authorize(Roles = "Secretary,Doctor")]
         public async Task<ActionResult<HolidayDto>> Create([FromForm] DateOnly date)
             => Ok(await _service.Add(date));
 
-        [Authorize(Roles = "Doctor")]
-        [Authorize(Roles = "Secretary")]
+        [Authorize(Roles = "Secretary,Doctor")]
         [HttpDelete("Delete/{id:guid}")]
         public async Task<ActionResult<bool>> Delete(Guid id)
             => Ok(await _service.Delete(id));
 
-        [Authorize(Roles = "Doctor")]
-        [Authorize(Roles = "Secretary")]
+        [Authorize(Roles = "Secretary,Doctor")]
         [HttpGet("Get/{id:guid}")]
         public async Task<ActionResult<HolidayDto>> Get(Guid id)
             => Ok(await _service.GetById(id));

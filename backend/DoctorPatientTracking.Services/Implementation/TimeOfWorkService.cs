@@ -51,7 +51,7 @@ namespace DoctorPatientTracking.Services.Implementation
             var duration = dto.EndTime - dto.StartTime;
             if (duration.Hours < 2)
                 throw new BadRequestException("At least 2 Hours.");
-            if (await _workRepo.CheckInterval(dto))
+            if (await _workRepo.CheckInterval(dto, id))
                 throw new ForbiddenException("At least one intersect.");
             Update(ref model, dto);
             _unitOfWork.GetGenericRepo<DaysTimeWork>().Update(model);

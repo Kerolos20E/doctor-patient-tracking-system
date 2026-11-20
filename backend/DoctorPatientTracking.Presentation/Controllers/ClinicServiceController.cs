@@ -7,7 +7,7 @@
         public async Task<ActionResult<ClinicServiceDto>> Create(CreteClinicServiceDto dto)
             => Ok(await _service.AddService(dto));
 
-        [HttpPost("Update/{id:guid}")]
+        [HttpPut("Update/{id:guid}")]
         public async Task<ActionResult<ClinicServiceDto>> Update(UpdateClinicServiceDto dto, Guid id)
             => Ok(await _service.UpdateService(dto, id));
 

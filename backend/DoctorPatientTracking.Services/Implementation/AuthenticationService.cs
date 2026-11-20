@@ -15,18 +15,13 @@ namespace DoctorPatientTracking.Services.Implementation
     {
         public async Task<ApiResponse<UserResultDto>> Login(LoginDto user)
         {
-            var currentuser = await _userManager.FindByEmailAsync(user.Email);
-            if (currentuser is null)
-                throw new UnauthenticationException("Password or Emial is Wrong");
+            var currentuser = await _userManager.FindByEmailAsync(user.Email) ??
+                throw new UnauthenticationException("Password or Email is Wrong");
 
             if (!await _userManager.CheckPasswordAsync(currentuser, user.Password))
-                throw new UnauthenticationException("Password or Emial is Wrong");
+                throw new UnauthenticationException("Password or Email is Wrong");
 
-            var originUser = await _userManager.FindByEmailAsync(user.Email);
-            if (originUser is null)
-                throw new Exception("");
-
-            string token = await CreateToken(originUser);
+            string token = await CreateToken(currentuser);
 
             string refreshTokenn = CreateRefreshToken();
             await _refreshToken.AddAsync(refreshTokenn, currentuser.Id);
