@@ -1,0 +1,14 @@
+@import "tailwindcss";
+
+@theme inline {
+  --font-sans: "Noto Sans Arabic", sans-serif;
+  --color-primary: var(--tenant-primary, #0e7c86);
+  --color-surface: #f9f9ff;
+  --color-surface-alt: #f0f3ff;
+  --color-danger: #b3261e;
+  --color-warning: #e8a317;
+}
+
+body {
+  @apply bg-surface font-sans text-slate-800;
+}
