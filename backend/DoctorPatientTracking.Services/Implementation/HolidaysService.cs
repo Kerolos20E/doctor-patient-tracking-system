@@ -2,10 +2,11 @@
 
 namespace DoctorPatientTracking.Services.Implementation
 {
-    public class HolidaysService(IUnitOfWork _unitOfWork, IHolidaysRepo holidaysRepo) : IHolidaysService
+    public class HolidaysService(IUnitOfWork _unitOfWork, IHolidaysRepo holidaysRepo, ITenantProvider _tenant) : IHolidaysService
     {
         public async Task<ApiResponse<HolidayDto>> Add(DateOnly dto)
         {
+            _tenant.CheckHasTenant();
             if (dto <= DateOnly.FromDateTime(DateTime.UtcNow))
                 throw new ForbiddenException("Can not add Date is old.");
             var clinicClosed = new ClinicClosedDate() { Date = dto };
@@ -16,6 +17,7 @@ namespace DoctorPatientTracking.Services.Implementation
 
         public async Task<ApiResponse<bool>> Delete(Guid id)
         {
+            _tenant.CheckHasTenant();
             var model = await _unitOfWork.GetGenericRepo<ClinicClosedDate>().GetByIdAsync(id) ??
                 throw new NotFoundException("Not Found Holiday with this id.");
             _unitOfWork.GetGenericRepo<ClinicClosedDate>().Delete(model);
@@ -25,6 +27,7 @@ namespace DoctorPatientTracking.Services.Implementation
 
         public async Task<ApiResponse<IEnumerable<HolidayDto>>> GetAll()
         {
+            _tenant.CheckHasTenant();
             var clinicClosedDates = await _unitOfWork.GetGenericRepo<ClinicClosedDate>().GetAllAsync();
             List<HolidayDto> Holidays = new();
             foreach (var item in clinicClosedDates)
@@ -35,12 +38,14 @@ namespace DoctorPatientTracking.Services.Implementation
 
         public async Task<ApiResponse<HolidayDto>> GetByDate(DateOnly date)
         {
+            _tenant.CheckHasTenant();
             var result = await holidaysRepo.GetByDate(date) ?? throw new NotFoundException("Not Found Holiday in this day.");
             return ApiResponse<HolidayDto>.Success(new HolidayDto() { Date = date, Id = result.Id });
         }
 
         public async Task<ApiResponse<HolidayDto>> GetById(Guid id)
         {
+            _tenant.CheckHasTenant();
             var model = await _unitOfWork.GetGenericRepo<ClinicClosedDate>().GetByIdAsync(id) ??
                 throw new NotFoundException("Not found holiday with this Id.");
             return ApiResponse<HolidayDto>.Success(new HolidayDto() { Date = model.Date, Id = id });

@@ -2,10 +2,11 @@
 
 namespace DoctorPatientTracking.Services.Implementation
 {
-    public class ClinicServiceService(IUnitOfWork _unitOfWork) : IClinicServiceService
+    public class ClinicServiceService(IUnitOfWork _unitOfWork, ITenantProvider _tenant) : IClinicServiceService
     {
         public async Task<ApiResponse<ClinicServiceDto>> AddService(CreteClinicServiceDto dto)
         {
+            _tenant.CheckHasTenant();
             if (dto.DurationInMinutes < 10 || dto.DurationInMinutes > 90)
                 throw new BadRequestException("Duration of clinic service is between 10 to 90.");
             var clinicModel = ClinicServiceFactory.ToClinicModel(dto);
@@ -17,6 +18,7 @@ namespace DoctorPatientTracking.Services.Implementation
 
         public async Task<ApiResponse<ClinicServiceDto>> UpdateService(UpdateClinicServiceDto dto, Guid id)
         {
+            _tenant.CheckHasTenant();
             if (dto.DurationInMinutes < 10 || dto.DurationInMinutes > 90)
                 throw new BadRequestException("Duration of clinic service is between 10 to 90.");
             var clinicModel = await _unitOfWork.GetGenericRepo<ClinicService>().GetByIdAsync(id);
@@ -32,6 +34,7 @@ namespace DoctorPatientTracking.Services.Implementation
 
         public async Task<ApiResponse<bool>> DeleteService(Guid id)
         {
+            _tenant.CheckHasTenant();
             var clinicModel = await _unitOfWork.GetGenericRepo<ClinicService>().GetByIdAsync(id);
             if (clinicModel is null)
                 throw new NotFoundException("Not found clinic service with this id.");
@@ -42,6 +45,7 @@ namespace DoctorPatientTracking.Services.Implementation
 
         public async Task<ApiResponse<PagenatedResult<ClinicServiceDto>>> GetAllService(int? pageIndex, int? pageSize)
         {
+            _tenant.CheckHasTenant();
             var specification = new ClinicServiceSpecification(pageIndex, pageSize);
             var list = await _unitOfWork.GetGenericRepo<ClinicService>().GetAllAsync(specification);
             var totalSpecification = new ClinicServiceSpecification();
@@ -53,6 +57,7 @@ namespace DoctorPatientTracking.Services.Implementation
 
         public async Task<ApiResponse<ClinicServiceDto>> GetService(Guid id)
         {
+            _tenant.CheckHasTenant();
             var clinicModel = await _unitOfWork.GetGenericRepo<ClinicService>().GetByIdAsync(id);
             if (clinicModel is null)
                 throw new NotFoundException("Not found clinic service with this id.");

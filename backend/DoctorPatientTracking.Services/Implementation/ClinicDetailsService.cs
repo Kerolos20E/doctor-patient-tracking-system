@@ -31,8 +31,7 @@ namespace DoctorPatientTracking.Services.Implementation
 
         private async Task<TenantClinic> GetCurrentClinic()
         {
-            if (!_tenant.HasTenant)
-                throw new BadRequestException("Clinic not resolved.");
+            _tenant.CheckHasTenant();
             var model = await _unitOfWork.GetGenericRepo<TenantClinic>().GetByIdAsync(_tenant.TenantId);
             if (model is null)
                 throw new NotFoundException("Not found clinic.");

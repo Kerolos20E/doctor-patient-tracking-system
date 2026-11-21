@@ -14,8 +14,7 @@ namespace DoctorPatientTracking.Services.Implementation
     {
         public async Task<ApiResponse<BookingResultDto>> CreateBookingBySecretary(CreateBookingBySecretaryDto dto)
         {
-            if (!_tenant.HasTenant)
-                throw new BadRequestException("Clinic not resolved.");
+            _tenant.CheckHasTenant();
 
             var today = DateOnly.FromDateTime(DateTime.UtcNow);
             if (dto.AppointmentDate != today)
@@ -116,8 +115,7 @@ namespace DoctorPatientTracking.Services.Implementation
 
         public async Task<ApiResponse<bool>> CancelBookingByPatient(Guid bookingId, Guid patientId)
         {
-            if (!_tenant.HasTenant)
-                throw new BadRequestException("Clinic not resolved.");
+            _tenant.CheckHasTenant();
 
             var spec = new BookingWithQueueSpecification(bookingId);
             var booking = await _unitOfWork.GetGenericRepo<Booking>().GetByIdAsync(spec) ??
@@ -151,8 +149,7 @@ namespace DoctorPatientTracking.Services.Implementation
 
         public async Task<ApiResponse<PagenatedResult<QueueItemDto>>> GetTodayQueue(int? pageNumber, int? pageSize)
         {
-            if (!_tenant.HasTenant)
-                throw new BadRequestException("Clinic not resolved.");
+            _tenant.CheckHasTenant();
 
             var today = DateOnly.FromDateTime(DateTime.UtcNow);
 
@@ -178,8 +175,7 @@ namespace DoctorPatientTracking.Services.Implementation
 
         public async Task<ApiResponse<bool>> UpdateQueueStatus(Guid clinicQueueId, UpdateQueueStatusDto dto)
         {
-            if (!_tenant.HasTenant)
-                throw new BadRequestException("Clinic not resolved.");
+            _tenant.CheckHasTenant();
 
             var allowedStatuses = new[]
             {
@@ -234,8 +230,7 @@ namespace DoctorPatientTracking.Services.Implementation
 
         public async Task<ApiResponse<PatientQueuePositionDto>> GetMyQueuePosition(Guid patientId)
         {
-            if (!_tenant.HasTenant)
-                throw new BadRequestException("Clinic not resolved.");
+            _tenant.CheckHasTenant();
 
             var today = DateOnly.FromDateTime(DateTime.UtcNow);
 
