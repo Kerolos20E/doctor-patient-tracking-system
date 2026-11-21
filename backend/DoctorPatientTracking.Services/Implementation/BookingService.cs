@@ -209,6 +209,7 @@ namespace DoctorPatientTracking.Services.Implementation
                 case ClinicQueueStatus.InProgress:
                     queue.StartedAt = DateTime.UtcNow;
                     break;
+
                 case ClinicQueueStatus.Completed:
                     if (queue.StartedAt is null)
                         queue.StartedAt = DateTime.UtcNow;
