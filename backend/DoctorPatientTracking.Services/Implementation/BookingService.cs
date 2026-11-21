@@ -1,4 +1,5 @@
 using DoctorPatientTracking.Shared.Dtos.Booking;
+using DoctorPatientTracking.Shared.Dtos.Queue;
 using DoctorPatientTracking.Shared.Enums;
 using Microsoft.AspNetCore.Identity;
 using System.Text.RegularExpressions;
@@ -146,6 +147,114 @@ namespace DoctorPatientTracking.Services.Implementation
             await _unitOfWork.SaveChanagesAsync();
 
             return ApiResponse<bool>.Success(true, "Booking cancelled successfully.");
+        }
+
+        public async Task<ApiResponse<PagenatedResult<QueueItemDto>>> GetTodayQueue(int? pageNumber, int? pageSize)
+        {
+            if (!_tenant.HasTenant)
+                throw new BadRequestException("Clinic not resolved.");
+
+            var today = DateOnly.FromDateTime(DateTime.UtcNow);
+
+            var spec = new TodayQueueSpecification(today, pageNumber, pageSize);
+            var queues = await _unitOfWork.GetGenericRepo<ClinicQueue>().GetAllAsync(spec);
+
+            var countSpec = new TodayQueueCountSpecification(today);
+            var totalCount = await _unitOfWork.GetGenericRepo<ClinicQueue>().GetCountAsync(countSpec);
+
+            var items = queues.Select(q => new QueueItemDto
+            {
+                ClinicQueueId = q.Id,
+                QueueNumber = q.QueueNumber,
+                PatientFullName = q.Patient.FullName,
+                PatientPhone = q.Patient.PhoneNumber ?? string.Empty
+            });
+
+            if (!pageNumber.HasValue || pageNumber <= 0) pageNumber = 1;
+            if (!pageSize.HasValue || pageSize <= 0 || pageSize > 10) pageSize = 10;
+
+            return PagenatedResult<QueueItemDto>.Success(pageNumber.Value, pageSize.Value, totalCount, items);
+        }
+
+        public async Task<ApiResponse<bool>> UpdateQueueStatus(Guid clinicQueueId, UpdateQueueStatusDto dto)
+        {
+            if (!_tenant.HasTenant)
+                throw new BadRequestException("Clinic not resolved.");
+
+            var allowedStatuses = new[]
+            {
+                ClinicQueueStatus.Skipped,
+                ClinicQueueStatus.Cancelled,
+                ClinicQueueStatus.InProgress,
+                ClinicQueueStatus.Completed
+            };
+
+            if (!allowedStatuses.Contains(dto.Status))
+                throw new BadRequestException("Invalid status. Allowed: Skipped, Cancelled, InProgress, Completed.");
+
+            var spec = new QueueByIdSpecification(clinicQueueId);
+            var queue = await _unitOfWork.GetGenericRepo<ClinicQueue>().GetByIdAsync(spec)
+                ?? throw new NotFoundException("Queue entry not found.");
+
+            if (queue.Status == ClinicQueueStatus.Completed)
+                throw new BadRequestException("Cannot change the status of a completed appointment.");
+
+            if (queue.Status == ClinicQueueStatus.Cancelled)
+                throw new BadRequestException("Cannot change the status of a cancelled appointment.");
+
+            queue.Status = dto.Status;
+
+            switch (dto.Status)
+            {
+                case ClinicQueueStatus.InProgress:
+                    queue.StartedAt = DateTime.UtcNow;
+                    break;
+                case ClinicQueueStatus.Completed:
+                    if (queue.StartedAt is null)
+                        queue.StartedAt = DateTime.UtcNow;
+                    queue.EndAt = DateTime.UtcNow;
+                    break;
+            }
+
+            _unitOfWork.GetGenericRepo<ClinicQueue>().Update(queue);
+            await _unitOfWork.SaveChanagesAsync();
+
+            var message = dto.Status switch
+            {
+                ClinicQueueStatus.InProgress => "Patient is now in progress with the doctor.",
+                ClinicQueueStatus.Completed => "Appointment completed successfully.",
+                ClinicQueueStatus.Skipped => "Patient has been skipped.",
+                ClinicQueueStatus.Cancelled => "Appointment has been cancelled.",
+                _ => "Status updated."
+            };
+
+            return ApiResponse<bool>.Success(true, message);
+        }
+
+        public async Task<ApiResponse<PatientQueuePositionDto>> GetMyQueuePosition(Guid patientId)
+        {
+            if (!_tenant.HasTenant)
+                throw new BadRequestException("Clinic not resolved.");
+
+            var today = DateOnly.FromDateTime(DateTime.UtcNow);
+
+            var activeSpec = new ActiveQueueByPatientAndDateSpecification(patientId, today);
+            var queue = await _unitOfWork.GetGenericRepo<ClinicQueue>().GetByIdAsync(activeSpec)
+                ?? throw new NotFoundException("You don't have an active appointment today.");
+
+            if (queue.Status != ClinicQueueStatus.Waiting)
+                throw new BadRequestException($"Your appointment status is '{queue.Status}', not waiting in queue.");
+
+            var aheadSpec = new PeopleAheadSpecification(today, queue.QueueNumber);
+            var peopleAhead = await _unitOfWork.GetGenericRepo<ClinicQueue>().GetCountAsync(aheadSpec);
+
+            var result = new PatientQueuePositionDto
+            {
+                YourQueueNumber = queue.QueueNumber,
+                PeopleAheadOfYou = peopleAhead
+            };
+
+            return ApiResponse<PatientQueuePositionDto>.Success(result, $"Your queue number is {queue.QueueNumber}. There are {peopleAhead} people ahead of you.");
         }
 
         private static Days MapToClinicDay(DayOfWeek dayOfWeek) => dayOfWeek switch
