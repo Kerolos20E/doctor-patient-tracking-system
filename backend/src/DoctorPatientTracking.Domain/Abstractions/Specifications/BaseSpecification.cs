@@ -49,7 +49,7 @@ namespace DoctorPatientTracking.Domain.Abstractions.Specifications
         public void ApplyPagenation(int? pageNumber, int? pageSize)
         {
             if (!pageNumber.HasValue || pageNumber <= 0) pageNumber = 1;
-            if (!pageSize.HasValue || pageSize <= 10 || pageSize > MaxPageSize) pageSize = MaxPageSize;
+            if (!pageSize.HasValue || pageSize <= 0 || pageSize > MaxPageSize) pageSize = MaxPageSize;
             IsPagenation = true;
             Skip = (pageNumber.Value - 1) * pageSize.Value;
             Take = pageSize.Value;

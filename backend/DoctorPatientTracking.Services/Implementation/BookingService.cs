@@ -65,7 +65,7 @@ namespace DoctorPatientTracking.Services.Implementation
                     CreatedAt = DateTime.UtcNow
                 };
 
-                var identityResult = await _userManager.CreateAsync(patient, normalizedPhone + "@Patient");
+                var identityResult = await _userManager.CreateAsync(patient);
                 if (!identityResult.Succeeded)
                 {
                     var errors = string.Join(", ", identityResult.Errors.Select(e => e.Description));
