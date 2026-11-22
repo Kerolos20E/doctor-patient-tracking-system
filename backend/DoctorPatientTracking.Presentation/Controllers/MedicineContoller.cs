@@ -8,7 +8,7 @@
             => Ok(await _medicineService.AddMedicine(medicineName));
 
         [HttpGet("GetMedicines")]
-        public async Task<ActionResult<ApiResponse<IEnumerable<string>>> GetMedicines([FromBody] string medicineName)
+        public async Task<ActionResult<ApiResponse<IEnumerable<string>>>> GetMedicines([FromBody] string medicineName)
             => Ok(await _medicineService.GetMedicines(medicineName));
     }
 }
