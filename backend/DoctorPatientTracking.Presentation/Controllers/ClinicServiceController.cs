@@ -1,4 +1,6 @@
-﻿namespace DoctorPatientTracking.Presentation.Controllers
+﻿global using DoctorPatientTracking.Shared.Dtos.ClinicService;
+
+namespace DoctorPatientTracking.Presentation.Controllers
 {
     [Authorize(Roles = "Doctor")]
     public class ClinicServiceController(IClinicServiceService _service, ISecretaryService _secretary) : ApiController

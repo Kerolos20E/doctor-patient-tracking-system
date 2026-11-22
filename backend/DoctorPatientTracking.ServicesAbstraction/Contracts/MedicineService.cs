@@ -2,8 +2,8 @@
 {
     public interface IMedicineService
     {
-        Task<ApiResponse<string>> GetMedicine(string prefix);
+        Task<ApiResponse<IEnumerable<string>>> GetMedicines(string medicineName);
 
-        Task<ApiResponse<string>> AddMedicine(string medicine);
+        Task<ApiResponse<bool>> AddMedicine(string medicineName);
     }
 }
