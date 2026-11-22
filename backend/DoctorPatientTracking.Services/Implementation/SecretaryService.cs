@@ -56,8 +56,7 @@ namespace DoctorPatientTracking.Services.Implementation
 
         private async Task<ApplicationUser> GetUserByPhone(string phone)
         {
-            if (!_tenant.HasTenant)
-                throw new BadRequestException("Clinic not resolved.");
+            _tenant.CheckHasTenant();
 
             var normalizedPhone = Regex.Replace(phone ?? string.Empty, "[^0-9]", "");
             if (normalizedPhone.Length == 0)

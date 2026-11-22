@@ -12,6 +12,8 @@
             builder.HasOne(e => e.Booking).WithOne(e => e.ClinicQueue).HasForeignKey<Booking>(e => e.ClinicQueueId)
                 .OnDelete(DeleteBehavior.Restrict);
             builder.HasOne<TenantClinic>().WithMany().HasForeignKey(e => e.TenantId).OnDelete(DeleteBehavior.Restrict);
+            builder.HasIndex(e => new { e.TenantId, e.PatientId, e.AppointmentDate }).IsUnique();
+            builder.HasIndex(e => new { e.TenantId, e.QueueNumber, e.AppointmentDate }).IsUnique();
         }
     }
 }

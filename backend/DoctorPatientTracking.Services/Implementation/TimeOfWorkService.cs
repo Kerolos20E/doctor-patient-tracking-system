@@ -2,10 +2,11 @@
 
 namespace DoctorPatientTracking.Services.Implementation
 {
-    public class TimeOfWorkService(IUnitOfWork _unitOfWork, IDaysTimeWorkRepo _workRepo) : ITimeOfWorkService
+    public class TimeOfWorkService(IUnitOfWork _unitOfWork, IDaysTimeWorkRepo _workRepo, ITenantProvider _tenant) : ITimeOfWorkService
     {
         public async Task<ApiResponse<DaysTimeWorkDto>> Add(CreateOrUpdateDaysTimeWorkDto dto)
         {
+            _tenant.CheckHasTenant();
             if (dto.StartTime > dto.EndTime)
                 throw new ForbiddenException($"Start time :{dto.StartTime} after then End time :{dto.EndTime}.");
             var duration = dto.EndTime - dto.StartTime;
@@ -22,6 +23,7 @@ namespace DoctorPatientTracking.Services.Implementation
 
         public async Task<ApiResponse<bool>> Delete(Guid id)
         {
+            _tenant.CheckHasTenant();
             var model = await _unitOfWork.GetGenericRepo<DaysTimeWork>().GetByIdAsync(id) ??
                 throw new NotFoundException("Not found Date with this id.");
             _unitOfWork.GetGenericRepo<DaysTimeWork>().Delete(model);
@@ -31,6 +33,7 @@ namespace DoctorPatientTracking.Services.Implementation
 
         public async Task<ApiResponse<DaysTimeWorkDto>> Get(Guid id)
         {
+            _tenant.CheckHasTenant();
             var model = await _unitOfWork.GetGenericRepo<DaysTimeWork>().GetByIdAsync(id) ??
                 throw new NotFoundException("Not found Date with this id.");
             return ApiResponse<DaysTimeWorkDto>.Success(DaysTimeWorkFactory.ToDaysTimeWorkDto(model), "");
@@ -38,12 +41,14 @@ namespace DoctorPatientTracking.Services.Implementation
 
         public async Task<ApiResponse<IEnumerable<DaysTimeWorkDto>>> GetAll()
         {
+            _tenant.CheckHasTenant();
             var models = await _unitOfWork.GetGenericRepo<DaysTimeWork>().GetAllAsync();
             return ApiResponse<IEnumerable<DaysTimeWorkDto>>.Success(models.Select(DaysTimeWorkFactory.ToDaysTimeWorkDto), "");
         }
 
         public async Task<ApiResponse<bool>> Update(CreateOrUpdateDaysTimeWorkDto dto, Guid id)
         {
+            _tenant.CheckHasTenant();
             var model = await _unitOfWork.GetGenericRepo<DaysTimeWork>().GetByIdAsync(id) ??
                  throw new NotFoundException("Not found Date with this id.");
             if (dto.StartTime > dto.EndTime)

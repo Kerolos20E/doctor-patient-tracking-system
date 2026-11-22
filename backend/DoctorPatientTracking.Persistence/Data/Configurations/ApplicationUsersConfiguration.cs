@@ -14,6 +14,7 @@
             builder.Property(e => e.Gender).HasConversion<string>().HasMaxLength(10);
             builder.HasIndex(e => e.NormalizedEmail).HasDatabaseName("EmailIndex").IsUnique(false);
             builder.HasIndex(e => new { e.TenantId, e.NormalizedEmail }).IsUnique();
+            builder.HasIndex(e => new { e.TenantId, e.PhoneNumber }).IsUnique();
             builder.HasOne<TenantClinic>().WithMany().HasForeignKey(e => e.TenantId).OnDelete(DeleteBehavior.Restrict);
         }
     }

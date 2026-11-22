@@ -7,5 +7,7 @@
         bool HasTenant { get; }
 
         void SetTenant(Guid tenantId);
+
+        void CheckHasTenant();
     }
 }

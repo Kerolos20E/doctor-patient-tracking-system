@@ -6,7 +6,6 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
-using System.Text.RegularExpressions;
 
 namespace DoctorPatientTracking.Services.Implementation
 {
@@ -35,8 +34,8 @@ namespace DoctorPatientTracking.Services.Implementation
             if (user.Password != user.ConfirmedPassword)
                 throw new ForbiddenException("Password not equal Confirmed Password");
             ApplicationUser originalUser = UserFactory.ToUser(user);
-            var phone = Regex.Replace(user.Phone, "[^0-9+]", "");
-            originalUser.UserName = $"{_tenant.TenantId:N}_{phone}";
+            originalUser.UserName = Helper.NormalizUserName(user.Phone, _tenant.TenantId);
+            originalUser.PhoneNumber = Helper.NormalizePhone(user.Phone);
             var result = await _userManager.CreateAsync(originalUser, user.Password);
             if (!result.Succeeded)
             {

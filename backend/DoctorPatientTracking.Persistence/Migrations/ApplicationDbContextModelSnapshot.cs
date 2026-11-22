@@ -120,6 +120,10 @@ namespace DoctorPatientTracking.Persistence.Migrations
                         .IsUnique()
                         .HasFilter("[NormalizedEmail] IS NOT NULL");
 
+                    b.HasIndex("TenantId", "PhoneNumber")
+                        .IsUnique()
+                        .HasFilter("[PhoneNumber] IS NOT NULL");
+
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
@@ -235,7 +239,11 @@ namespace DoctorPatientTracking.Persistence.Migrations
 
                     b.HasIndex("PatientId");
 
-                    b.HasIndex("TenantId");
+                    b.HasIndex("TenantId", "PatientId", "AppointmentDate")
+                        .IsUnique();
+
+                    b.HasIndex("TenantId", "QueueNumber", "AppointmentDate")
+                        .IsUnique();
 
                     b.ToTable("ClinicQueues");
                 });
@@ -416,7 +424,8 @@ namespace DoctorPatientTracking.Persistence.Migrations
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasColumnType("nvarchar(100)")
+                        .UseCollation("Latin1_General_100_CI_AS");
 
                     b.Property<string>("Type")
                         .IsRequired()
