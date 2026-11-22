@@ -12,8 +12,8 @@ namespace DoctorPatientTracking.Services.Specifications
 
         private static Expression<Func<ApplicationUser, bool>> Build(Guid tenantId, string phone)
         {
-            string userName = $"{tenantId:N}_{phone}";
-            return e => e.TenantId == tenantId && (e.PhoneNumber == phone || e.UserName == userName);
+            string userName = Helper.NormalizUserName(phone, tenantId);
+            return e => e.TenantId == tenantId && (e.PhoneNumber == phone || e.NormalizedUserName == userName);
         }
     }
 }

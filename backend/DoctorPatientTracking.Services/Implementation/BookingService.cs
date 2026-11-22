@@ -2,7 +2,6 @@ using DoctorPatientTracking.Shared.Dtos.Booking;
 using DoctorPatientTracking.Shared.Dtos.Queue;
 using DoctorPatientTracking.Shared.Enums;
 using Microsoft.AspNetCore.Identity;
-using System.Text.RegularExpressions;
 
 namespace DoctorPatientTracking.Services.Implementation
 {
@@ -35,7 +34,7 @@ namespace DoctorPatientTracking.Services.Implementation
             if (!service.IsActive)
                 throw new BadRequestException("This clinic service is currently inactive.");
 
-            var normalizedPhone = Regex.Replace(dto.Phone ?? string.Empty, "[^0-9]", "");
+            var normalizedPhone = Helper.NormalizePhone(dto.Phone ?? string.Empty);
             if (string.IsNullOrWhiteSpace(normalizedPhone))
                 throw new BadRequestException("Phone number is required.");
 
@@ -55,7 +54,7 @@ namespace DoctorPatientTracking.Services.Implementation
                 {
                     Id = Guid.CreateVersion7(),
                     TenantId = _tenant.TenantId,
-                    UserName = $"{_tenant.TenantId:N}_{normalizedPhone}",
+                    UserName = Helper.NormalizUserName(normalizedPhone, _tenant.TenantId),
                     PhoneNumber = normalizedPhone,
                     FirstName = dto.FirstName.Trim(),
                     LastName = dto.LastName.Trim(),

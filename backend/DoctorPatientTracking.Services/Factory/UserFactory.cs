@@ -13,7 +13,7 @@ namespace DoctorPatientTracking.Services.Factory
                 FirstName = Dto.FirstName,
                 LastName = Dto.LastName,
                 Gender = Dto.Gender,
-                PhoneNumber = Dto.Phone
+                PhoneNumber = Helper.NormalizePhone(Dto.Phone)
             };
     }
 }
