@@ -1,5 +1,4 @@
 using DoctorPatientTracking.Shared.Dtos.DoctorReview;
-using DoctorPatientTracking.Shared.Dtos.Result;
 
 namespace DoctorPatientTracking.ServicesAbstraction.Contracts
 {
