@@ -38,5 +38,19 @@ namespace DoctorPatientTracking.Presentation.Controllers
             var isDoctor = User.IsInRole("Doctor");
             return Ok(await _reviewService.GetReviewById(id, currentUserId.Value, isDoctor));
         }
+
+        [HttpGet("{id:guid}/pdf")]
+        [Authorize(Roles = "Doctor,Patient")]
+        public async Task<IActionResult> GetPdf(Guid id)
+        {
+            var currentUserId = GetCurrentUserId();
+            if (currentUserId is null)
+                return Unauthorized();
+
+            var isDoctor = User.IsInRole("Doctor");
+            var pdfBytes = await _reviewService.GenerateReviewPdf(id, currentUserId.Value, isDoctor);
+
+            return File(pdfBytes, "application/pdf", $"MedicalReport_{id}.pdf");
+        }
     }
 }

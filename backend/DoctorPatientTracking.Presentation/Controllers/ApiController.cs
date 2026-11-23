@@ -12,7 +12,11 @@ namespace DoctorPatientTracking.Presentation.Controllers
     {
         protected internal Guid? GetCurrentUserId()
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)
+                      ?? User.FindFirstValue("sub")
+                      ?? User.FindFirstValue("nameid")
+                      ?? User.Claims.FirstOrDefault(c => c.Type.EndsWith("nameidentifier", StringComparison.OrdinalIgnoreCase))?.Value
+                      ?? User.FindFirstValue("id");
 
             return Guid.TryParse(userId, out var id) ? id : null;
         }

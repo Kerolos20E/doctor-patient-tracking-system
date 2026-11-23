@@ -1,5 +1,7 @@
 ﻿using DoctorPatientTracking.Shared.Dtos.User;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -9,8 +11,12 @@ using System.Text;
 
 namespace DoctorPatientTracking.Services.Implementation
 {
-    public class AuthenticationService(UserManager<ApplicationUser> _userManager,
-         IOptions<JWT> jwt, IRefreshTokenRepo _refreshToken, ITenantProvider _tenant) : IAuthenticationService
+    public class AuthenticationService(
+        UserManager<ApplicationUser> _userManager,
+        IOptions<JWT> jwt,
+        IRefreshTokenRepo _refreshToken,
+        ITenantProvider _tenant,
+        IFileService _fileService) : IAuthenticationService
     {
         public async Task<ApiResponse<UserResultDto>> Login(LoginDto user)
         {
@@ -59,6 +65,64 @@ namespace DoctorPatientTracking.Services.Implementation
             string token = await CreateToken(refresh.User);
             await _refreshToken.UpdateAsync(refresh, CreateRefreshToken());
             return ApiResponse<UserResultDto>.Success(new(token, refresh.Token), "");
+        }
+
+        public async Task<ApiResponse<string>> UploadProfileImage(Guid userId, IFormFile file)
+        {
+            var user = await GetUserByIdAsync(userId)
+                ?? throw new NotFoundException("User not found.");
+
+            var relativePath = await _fileService.UploadImageAsync(file, "profiles");
+
+            if (!string.IsNullOrWhiteSpace(user.PhotoUrl))
+            {
+                _fileService.DeleteFile(user.PhotoUrl);
+            }
+
+            user.PhotoUrl = relativePath;
+            var result = await _userManager.UpdateAsync(user);
+            if (!result.Succeeded)
+            {
+                _fileService.DeleteFile(relativePath);
+                var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+                throw new BadRequestException($"Failed to update profile image: {errors}");
+            }
+
+            return ApiResponse<string>.Success(relativePath, "Profile image updated successfully.");
+        }
+
+        public async Task<ApiResponse<bool>> DeleteProfileImage(Guid userId)
+        {
+            var user = await GetUserByIdAsync(userId)
+                ?? throw new NotFoundException("User not found.");
+
+            if (!string.IsNullOrWhiteSpace(user.PhotoUrl))
+            {
+                _fileService.DeleteFile(user.PhotoUrl);
+                user.PhotoUrl = null;
+                await _userManager.UpdateAsync(user);
+            }
+
+            return ApiResponse<bool>.Success(true, "Profile image removed successfully.");
+        }
+
+        public async Task<ApiResponse<UserProfileDto>> GetProfile(Guid userId)
+        {
+            var user = await GetUserByIdAsync(userId)
+                ?? throw new NotFoundException("User not found.");
+
+            var roles = await _userManager.GetRolesAsync(user);
+            return ApiResponse<UserProfileDto>.Success(user.ToProfileDto(roles));
+        }
+
+        private async Task<ApplicationUser?> GetUserByIdAsync(Guid userId)
+        {
+            var user = await _userManager.FindByIdAsync(userId.ToString());
+            if (user is null)
+            {
+                user = await _userManager.Users.IgnoreQueryFilters().FirstOrDefaultAsync(u => u.Id == userId);
+            }
+            return user;
         }
 
         private async Task<string> CreateToken(ApplicationUser user)

@@ -1,11 +1,18 @@
+using DoctorPatientTracking.Services.PDF;
 using DoctorPatientTracking.Shared.Dtos.DoctorReview;
 using DoctorPatientTracking.Shared.Enums;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Identity;
+using QuestPDF.Fluent;
+using QuestPDF.Infrastructure;
 
 namespace DoctorPatientTracking.Services.Implementation
 {
     public class DoctorReviewService(
         IUnitOfWork _unitOfWork,
-        ITenantProvider _tenant) : IDoctorReviewService
+        ITenantProvider _tenant,
+        IWebHostEnvironment _webHostEnvironment,
+        UserManager<ApplicationUser> _userManager) : IDoctorReviewService
     {
         public async Task<ApiResponse<DoctorReviewResultDto>> CreateReview(CreateDoctorReviewDto dto)
         {
@@ -125,6 +132,105 @@ namespace DoctorPatientTracking.Services.Implementation
             var result = DoctorReviewFactory.ToResultDto(review, medicineNameMap);
 
             return ApiResponse<DoctorReviewResultDto>.Success(result, "Doctor review retrieved successfully.");
+        }
+
+        public async Task<byte[]> GenerateReviewPdf(Guid reviewId, Guid currentUserId, bool isDoctor)
+        {
+            _tenant.CheckHasTenant();
+
+            var spec = new DoctorReviewByIdSpecification(reviewId);
+            var review = await _unitOfWork.GetGenericRepo<DoctorReview>().GetByIdAsync(spec)
+                ?? throw new NotFoundException("Doctor review not found.");
+
+            if (!isDoctor && review.ClinicQueue.PatientId != currentUserId)
+                throw new ForbiddenException("You are not authorized to access this review.");
+
+            var clinic = await _unitOfWork.GetGenericRepo<TenantClinic>().GetByIdAsync(_tenant.TenantId);
+            var medicineNameMap = await GetMedicineNameMapForReviews([review]);
+
+            int? age = null;
+            if (review.ClinicQueue.Patient != null && review.ClinicQueue.Patient.BirthDate != default)
+            {
+                var today = DateOnly.FromDateTime(DateTime.UtcNow);
+                age = today.Year - review.ClinicQueue.Patient.BirthDate.Year;
+                if (review.ClinicQueue.Patient.BirthDate > today.AddYears(-age.Value))
+                    age--;
+            }
+
+            string doctorName = string.Empty;
+            if (isDoctor)
+            {
+                var doctorUser = await _userManager.FindByIdAsync(currentUserId.ToString());
+                if (doctorUser != null)
+                    doctorName = doctorUser.FullName;
+            }
+
+            if (string.IsNullOrWhiteSpace(doctorName))
+            {
+                var doctors = await _userManager.GetUsersInRoleAsync("Doctor");
+                var clinicDoctor = doctors.FirstOrDefault(d => d.TenantId == _tenant.TenantId);
+                if (clinicDoctor != null)
+                    doctorName = clinicDoctor.FullName;
+            }
+
+            string? logoPhysicalPath = null;
+            if (!string.IsNullOrWhiteSpace(clinic?.LogoUrl))
+            {
+                var rootPath = _webHostEnvironment.WebRootPath;
+                if (string.IsNullOrWhiteSpace(rootPath))
+                {
+                    rootPath = Path.Combine(_webHostEnvironment.ContentRootPath, "wwwroot");
+                }
+
+                var cleanRelative = clinic.LogoUrl.TrimStart('/', '\\').Replace('/', Path.DirectorySeparatorChar);
+                var candidate = Path.Combine(rootPath, cleanRelative);
+                if (File.Exists(candidate))
+                    logoPhysicalPath = candidate;
+            }
+
+            var addressParts = new List<string>();
+            if (!string.IsNullOrWhiteSpace(clinic?.Governorate)) addressParts.Add(clinic.Governorate);
+            if (!string.IsNullOrWhiteSpace(clinic?.City)) addressParts.Add(clinic.City);
+            if (!string.IsNullOrWhiteSpace(clinic?.AddressDetails)) addressParts.Add(clinic.AddressDetails);
+
+            var pdfModel = new MedicalReportPdfModel
+            {
+                ClinicName = clinic?.NameOfClinic ?? "Medical Clinic",
+                ClinicLogoPath = logoPhysicalPath,
+                ClinicSpecialty = clinic?.Specialty ?? string.Empty,
+                ClinicPhone = clinic?.PhoneNumber ?? string.Empty,
+                ClinicEmail = clinic?.Email ?? string.Empty,
+                ClinicAddress = string.Join(", ", addressParts),
+                DoctorName = doctorName,
+
+                PatientName = review.ClinicQueue.Patient?.FullName ?? "Patient",
+                PatientPhone = review.ClinicQueue.Patient?.PhoneNumber ?? string.Empty,
+                PatientGender = review.ClinicQueue.Patient?.Gender.ToString() ?? string.Empty,
+                PatientAge = age,
+                PatientBirthDate = review.ClinicQueue.Patient?.BirthDate,
+
+                ReviewId = review.Id,
+                VisitDate = review.ClinicQueue.AppointmentDate,
+                QueueNumber = review.ClinicQueue.QueueNumber,
+                ServiceName = review.ClinicQueue.ClinicService != null ? review.ClinicQueue.ClinicService.Type.ToString() : string.Empty,
+
+                DoctorNotes = review.Notes,
+                FollowUpDate = review.FollowUpDate,
+                Medicines = review.Medicines.Select(m => new MedicalReportMedicineItem
+                {
+                    Name = medicineNameMap.TryGetValue(m.MedicinesId, out var name) ? name : "Medicine",
+                    Dosage = m.Dosage,
+                    TimesPerDay = m.TimesPerDay,
+                    DurationInDays = m.DurationInDays,
+                    Details = m.Details
+                }).ToList()
+            };
+
+            QuestPDF.Settings.License = LicenseType.Community;
+            QuestPDF.Settings.UseSystemFonts = true;
+            QuestPDF.Settings.ThrowOnMissingTextGlyphs = false;
+            var document = new MedicalReportDocument(pdfModel);
+            return document.GeneratePdf();
         }
 
         private async Task<Dictionary<Guid, string>> GetMedicineNameMapForReviews(IEnumerable<DoctorReview> reviews)

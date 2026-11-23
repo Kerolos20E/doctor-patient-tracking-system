@@ -1,4 +1,5 @@
 ﻿using DoctorPatientTracking.Shared.Dtos.Clinic;
+using Microsoft.AspNetCore.Http;
 
 namespace DoctorPatientTracking.Presentation.Controllers
 {
@@ -17,5 +18,15 @@ namespace DoctorPatientTracking.Presentation.Controllers
         [HttpPut("Update")]
         public async Task<ActionResult<ApiResponse<ClinicDetailsDoctor>>> Update(UpdateClinicDetailsDto dto)
             => Ok(await _service.UpdateClinicDetails(dto));
+
+        [Authorize(Roles = "Doctor")]
+        [HttpPost("Logo")]
+        public async Task<ActionResult<ApiResponse<string>>> UploadLogo(IFormFile file)
+            => Ok(await _service.UploadLogo(file));
+
+        [Authorize(Roles = "Doctor")]
+        [HttpDelete("Logo")]
+        public async Task<ActionResult<ApiResponse<bool>>> DeleteLogo()
+            => Ok(await _service.DeleteLogo());
     }
 }
