@@ -22,28 +22,22 @@ namespace DoctorPatientTracking.Services.Implementation
                 throw new BadRequestException("Cannot create a review for a cancelled appointment.");
 
             var existingReviewSpec = new DoctorReviewByQueueIdSpecification(dto.ClinicQueueId);
-            var existingReview = await _unitOfWork.GetGenericRepo<DoctorReview>().GetByIdAsync(existingReviewSpec) ??
+            var existingReview = await _unitOfWork.GetGenericRepo<DoctorReview>().GetByIdAsync(existingReviewSpec);
+            if (existingReview != null)
                 throw new ConflictException("A medical review already exists for this appointment.");
 
             Dictionary<Guid, string> medicineNameMap = [];
 
             if (dto.Medicines != null && dto.Medicines.Count > 0)
             {
-                var duplicateIds = dto.Medicines
-                    .GroupBy(m => m.MedicineId)
+                var duplicateNames = dto.Medicines
+                    .GroupBy(m => m.Name)
                     .Where(g => g.Count() > 1)
                     .Select(g => g.Key)
                     .ToList();
 
-                if (duplicateIds.Count > 0)
+                if (duplicateNames.Count > 0)
                     throw new BadRequestException("Duplicate medicines found in the prescription.");
-
-                var allMedicines = (await _unitOfWork.GetGenericRepo<Medicine>().GetAllAsync()).ToList();
-                medicineNameMap = allMedicines.ToDictionary(m => m.Id, m => m.Name);
-
-                var invalidIds = dto.Medicines.Where(m => !medicineNameMap.ContainsKey(m.MedicineId)).ToList();
-                if (invalidIds.Count > 0)
-                    throw new BadRequestException("One or more selected medicines do not exist.");
             }
 
             var review = new DoctorReview
@@ -58,12 +52,20 @@ namespace DoctorPatientTracking.Services.Implementation
 
             if (dto.Medicines != null)
             {
+                var medicineSpecification = new GetMedicinesByName(dto.Medicines.Select(e => e.Name).ToList());
+                var medicineModels = await _unitOfWork.GetGenericRepo<Medicine>().GetAllAsync(medicineSpecification);
                 foreach (var med in dto.Medicines)
                 {
+                    Medicine? model = medicineModels.FirstOrDefault(e => e.Name == med.Name);
+                    if (model is null)
+                    {
+                        model = new Medicine() { Name = med.Name, Id = Guid.CreateVersion7() };
+                        await _unitOfWork.GetGenericRepo<Medicine>().AddAsync(model);
+                    }
                     review.Medicines.Add(new DoctorReviewMedicine
                     {
                         DoctorReviewId = review.Id,
-                        MedicinesId = med.MedicineId,
+                        MedicinesId = model.Id,
                         TenantId = _tenant.TenantId,
                         Dosage = med.Dosage,
                         TimesPerDay = med.TimesPerDay,
