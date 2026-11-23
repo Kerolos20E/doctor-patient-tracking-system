@@ -7,15 +7,16 @@ namespace DoctorPatientTracking.Services.PDF
     public class MedicalReportDocument(MedicalReportPdfModel model) : IDocument
     {
         public DocumentMetadata GetMetadata() => DocumentMetadata.Default;
+
         public DocumentSettings GetSettings() => DocumentSettings.Default;
 
         public void Compose(IDocumentContainer container)
         {
             container.Page(page =>
             {
-                page.Size(PageSizes.A4);
+                page.Size(PageSizes.A5);
                 page.Margin(35);
-                page.DefaultTextStyle(x => x.FontSize(10).FontColor(Colors.Grey.Darken3).FontFamily("Arial", "Segoe UI", "Tahoma"));
+                page.DefaultTextStyle(x => x.FontSize(15).FontColor(Colors.Grey.Darken3).FontFamily("Segoe UI", "Arial", "Tahoma"));
 
                 page.Header().Element(ComposeHeader);
                 page.Content().Element(ComposeContent);
