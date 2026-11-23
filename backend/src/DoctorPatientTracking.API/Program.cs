@@ -79,6 +79,8 @@ public class Program
         builder.Services.AddScoped<IHolidaysService, HolidaysService>();
         builder.Services.AddScoped<IHolidaysRepo, HolidaysRepo>();
         builder.Services.AddScoped<IBookingService, BookingService>();
+        builder.Services.AddScoped<IMedicineService, MedicineService>();
+        builder.Services.AddScoped<IDoctorReviewService, DoctorReviewService>();
 
         #endregion Services
 

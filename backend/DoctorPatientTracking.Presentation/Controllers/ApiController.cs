@@ -1,5 +1,4 @@
 ﻿global using DoctorPatientTracking.ServicesAbstraction.Contracts;
-global using DoctorPatientTracking.Shared.Dtos.ClinicService;
 global using DoctorPatientTracking.Shared.Dtos.Result;
 global using Microsoft.AspNetCore.Authorization;
 global using Microsoft.AspNetCore.Mvc;

@@ -1,11 +1,8 @@
-﻿using DoctorPatientTracking.Shared.Enums;
-
-namespace DoctorPatientTracking.Domain.Models
+﻿namespace DoctorPatientTracking.Domain.Models
 {
     public class Medicine
     {
         public Guid Id { get; set; }
         public string Name { get; set; } = string.Empty;
-        public MedicineType Type { get; set; }
     }
 }

@@ -427,11 +427,6 @@ namespace DoctorPatientTracking.Persistence.Migrations
                         .HasColumnType("nvarchar(100)")
                         .UseCollation("Latin1_General_100_CI_AS");
 
-                    b.Property<string>("Type")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
                     b.HasKey("Id");
 
                     b.HasIndex("Name")
