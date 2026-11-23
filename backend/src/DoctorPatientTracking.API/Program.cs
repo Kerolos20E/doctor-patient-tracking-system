@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using QuestPDF.Infrastructure;
 using Scalar.AspNetCore;
 using System.Text;
 
@@ -20,6 +21,10 @@ public class Program
 {
     public static async Task Main(string[] args)
     {
+        QuestPDF.Settings.License = LicenseType.Community;
+        QuestPDF.Settings.UseSystemFonts = true;
+        QuestPDF.Settings.ThrowOnMissingTextGlyphs = false;
+
         var builder = WebApplication.CreateBuilder(args);
 
         #region Services
@@ -60,13 +65,31 @@ public class Program
                 OnTokenValidated = ctx =>
                 {
                     var tenant = ctx.HttpContext.RequestServices.GetRequiredService<ITenantProvider>();
-                    if (ctx.Principal?.FindFirst("tenant_id")?.Value != tenant.TenantId.ToString())
-                        ctx.Fail("Token does not belong to this clinic.");
+                    var tokenTenantValue = ctx.Principal?.FindFirst("tenant_id")?.Value;
+
+                    if (Guid.TryParse(tokenTenantValue, out var tokenTenantId))
+                    {
+                        if (tenant.HasTenant)
+                        {
+                            if (tokenTenantId != tenant.TenantId)
+                                ctx.Fail("Token does not belong to this clinic.");
+                        }
+                        else
+                        {
+                            tenant.SetTenant(tokenTenantId);
+                        }
+                    }
+                    else
+                    {
+                        ctx.Fail("Token does not contain a valid clinic identity.");
+                    }
+
                     return Task.CompletedTask;
                 }
             };
         });
         builder.Services.AddScoped<ITenantProvider, TenantProvider>();
+        builder.Services.AddScoped<IFileService, FileService>();
         builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
         builder.Services.AddScoped<IRefreshTokenRepo, RefreshTokenRepo>();
         builder.Services.AddScoped<IDataSeeding, DataSeeding>();

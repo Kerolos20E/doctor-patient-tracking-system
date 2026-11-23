@@ -11,5 +11,7 @@ namespace DoctorPatientTracking.ServicesAbstraction.Contracts
         Task<ApiResponse<PagenatedResult<DoctorReviewResultDto>>> GetMyReviews(Guid patientId, int? pageNumber, int? pageSize);
 
         Task<ApiResponse<DoctorReviewResultDto>> GetReviewById(Guid reviewId, Guid currentUserId, bool isDoctor);
+
+        Task<byte[]> GenerateReviewPdf(Guid reviewId, Guid currentUserId, bool isDoctor);
     }
 }

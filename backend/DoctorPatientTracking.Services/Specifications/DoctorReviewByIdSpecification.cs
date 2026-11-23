@@ -9,6 +9,7 @@ namespace DoctorPatientTracking.Services.Specifications
         {
             AddIncluding(r => r.ClinicQueue);
             AddIncluding(r => r.ClinicQueue.Patient);
+            AddIncluding(r => r.ClinicQueue.ClinicService);
             AddIncluding(r => r.Medicines);
         }
     }
