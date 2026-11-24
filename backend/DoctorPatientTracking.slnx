@@ -1,6 +1,7 @@
 <Solution>
   <Folder Name="/src/">
     <Project Path="DoctorPatientTracking.Shared/DoctorPatientTracking.Shared.csproj" Id="94c15829-3fe7-4e16-abf5-647013f255b8" />
+    <Project Path="DoctorPatientTracking.Tests/DoctorPatientTracking.Tests.csproj" Id="26d61bd8-1ba2-49d2-bf5c-6f8c352e3317" />
     <Project Path="src/DoctorPatientTracking.API/DoctorPatientTracking.API.csproj" />
     <Project Path="src/DoctorPatientTracking.Domain/DoctorPatientTracking.Domain.csproj" />
   </Folder>
