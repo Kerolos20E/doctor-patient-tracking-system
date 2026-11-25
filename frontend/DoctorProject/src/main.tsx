@@ -1,10 +1,14 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import "../src/styles/index.css";
-import App from "./app/App.tsx";
+import "./styles/index.css";
+// import SettingsPage from "@/pages/clinic/SettingsPage";
+// import SchedulePage from "./pages/clinic/SchedulePage";
+import FinancePage from "./pages/clinic/FinancePage";
+// import BookAppointmentPage from "@/pages/patient/BookAppointmentPage";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <App />
+    {/* <BookAppointmentPage /> */}
+    <FinancePage />
   </StrictMode>
 );
