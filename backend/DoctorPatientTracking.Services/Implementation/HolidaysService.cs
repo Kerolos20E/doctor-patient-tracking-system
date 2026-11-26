@@ -2,7 +2,7 @@
 
 namespace DoctorPatientTracking.Services.Implementation
 {
-    public class HolidaysService(IUnitOfWork _unitOfWork, IHolidaysRepo holidaysRepo, ITenantProvider _tenant) : IHolidaysService
+    public class HolidaysService(IUnitOfWork _unitOfWork, IHolidaysRepo holidaysRepo, ITenantProvider _tenant, HolidayMapper _mapper) : IHolidaysService
     {
         public async Task<ApiResponse<HolidayDto>> Add(DateOnly dto)
         {
@@ -12,7 +12,7 @@ namespace DoctorPatientTracking.Services.Implementation
             var clinicClosed = new ClinicClosedDate() { Date = dto };
             await _unitOfWork.GetGenericRepo<ClinicClosedDate>().AddAsync(clinicClosed);
             await _unitOfWork.SaveChanagesAsync();
-            return ApiResponse<HolidayDto>.Success(new() { Date = dto, Id = clinicClosed.Id });
+            return ApiResponse<HolidayDto>.Success(_mapper.ToDto(clinicClosed));
         }
 
         public async Task<ApiResponse<bool>> Delete(Guid id)
@@ -29,18 +29,14 @@ namespace DoctorPatientTracking.Services.Implementation
         {
             _tenant.CheckHasTenant();
             var clinicClosedDates = await _unitOfWork.GetGenericRepo<ClinicClosedDate>().GetAllAsync();
-            List<HolidayDto> Holidays = new();
-            foreach (var item in clinicClosedDates)
-                Holidays.Add(new HolidayDto() { Date = item.Date, Id = item.Id });
-
-            return ApiResponse<IEnumerable<HolidayDto>>.Success(Holidays);
+            return ApiResponse<IEnumerable<HolidayDto>>.Success(_mapper.ToDtos(clinicClosedDates));
         }
 
         public async Task<ApiResponse<HolidayDto>> GetByDate(DateOnly date)
         {
             _tenant.CheckHasTenant();
             var result = await holidaysRepo.GetByDate(date) ?? throw new NotFoundException("Not Found Holiday in this day.");
-            return ApiResponse<HolidayDto>.Success(new HolidayDto() { Date = date, Id = result.Id });
+            return ApiResponse<HolidayDto>.Success(_mapper.ToDto(result));
         }
 
         public async Task<ApiResponse<HolidayDto>> GetById(Guid id)
@@ -48,7 +44,7 @@ namespace DoctorPatientTracking.Services.Implementation
             _tenant.CheckHasTenant();
             var model = await _unitOfWork.GetGenericRepo<ClinicClosedDate>().GetByIdAsync(id) ??
                 throw new NotFoundException("Not found holiday with this Id.");
-            return ApiResponse<HolidayDto>.Success(new HolidayDto() { Date = model.Date, Id = id });
+            return ApiResponse<HolidayDto>.Success(_mapper.ToDto(model));
         }
     }
 }

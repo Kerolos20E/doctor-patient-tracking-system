@@ -2,7 +2,7 @@
 
 namespace DoctorPatientTracking.Services.Implementation
 {
-    public class TimeOfWorkService(IUnitOfWork _unitOfWork, IDaysTimeWorkRepo _workRepo, ITenantProvider _tenant) : ITimeOfWorkService
+    public class TimeOfWorkService(IUnitOfWork _unitOfWork, IDaysTimeWorkRepo _workRepo, ITenantProvider _tenant, TimeOfWorkMapper _mapper) : ITimeOfWorkService
     {
         public async Task<ApiResponse<DaysTimeWorkDto>> Add(CreateOrUpdateDaysTimeWorkDto dto)
         {
@@ -15,10 +15,10 @@ namespace DoctorPatientTracking.Services.Implementation
             if (await _workRepo.CheckInterval(dto))
                 throw new ForbiddenException("At least one intersect.");
 
-            var modelDaysTimeWork = DaysTimeWorkFactory.ToDaysTimeWork(dto);
+            var modelDaysTimeWork = _mapper.ToEntity(dto);
             await _unitOfWork.GetGenericRepo<DaysTimeWork>().AddAsync(modelDaysTimeWork);
             await _unitOfWork.SaveChanagesAsync();
-            return ApiResponse<DaysTimeWorkDto>.Success(DaysTimeWorkFactory.ToDaysTimeWorkDto(modelDaysTimeWork), "");
+            return ApiResponse<DaysTimeWorkDto>.Success(_mapper.ToDto(modelDaysTimeWork), "");
         }
 
         public async Task<ApiResponse<bool>> Delete(Guid id)
@@ -36,14 +36,14 @@ namespace DoctorPatientTracking.Services.Implementation
             _tenant.CheckHasTenant();
             var model = await _unitOfWork.GetGenericRepo<DaysTimeWork>().GetByIdAsync(id) ??
                 throw new NotFoundException("Not found Date with this id.");
-            return ApiResponse<DaysTimeWorkDto>.Success(DaysTimeWorkFactory.ToDaysTimeWorkDto(model), "");
+            return ApiResponse<DaysTimeWorkDto>.Success(_mapper.ToDto(model), "");
         }
 
         public async Task<ApiResponse<IEnumerable<DaysTimeWorkDto>>> GetAll()
         {
             _tenant.CheckHasTenant();
             var models = await _unitOfWork.GetGenericRepo<DaysTimeWork>().GetAllAsync();
-            return ApiResponse<IEnumerable<DaysTimeWorkDto>>.Success(models.Select(DaysTimeWorkFactory.ToDaysTimeWorkDto), "");
+            return ApiResponse<IEnumerable<DaysTimeWorkDto>>.Success(_mapper.ToDtos(models), "");
         }
 
         public async Task<ApiResponse<bool>> Update(CreateOrUpdateDaysTimeWorkDto dto, Guid id)
@@ -58,17 +58,11 @@ namespace DoctorPatientTracking.Services.Implementation
                 throw new BadRequestException("At least 2 Hours.");
             if (await _workRepo.CheckInterval(dto, id))
                 throw new ForbiddenException("At least one intersect.");
-            Update(ref model, dto);
+            _mapper.ApplyUpdate(dto, model);
             _unitOfWork.GetGenericRepo<DaysTimeWork>().Update(model);
             await _unitOfWork.SaveChanagesAsync();
             return ApiResponse<bool>.Success(true, "");
         }
 
-        private void Update(ref DaysTimeWork model, CreateOrUpdateDaysTimeWorkDto dto)
-        {
-            model.Day = dto.Day;
-            model.EndTime = dto.EndTime;
-            model.StartTime = dto.StartTime;
-        }
     }
 }

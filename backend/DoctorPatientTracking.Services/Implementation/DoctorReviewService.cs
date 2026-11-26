@@ -12,7 +12,8 @@ namespace DoctorPatientTracking.Services.Implementation
         IUnitOfWork _unitOfWork,
         ITenantProvider _tenant,
         IWebHostEnvironment _webHostEnvironment,
-        UserManager<ApplicationUser> _userManager) : IDoctorReviewService
+        UserManager<ApplicationUser> _userManager,
+        DoctorReviewMapper _mapper) : IDoctorReviewService
     {
         public async Task<ApiResponse<DoctorReviewResultDto>> CreateReview(CreateDoctorReviewDto dto)
         {
@@ -47,15 +48,11 @@ namespace DoctorPatientTracking.Services.Implementation
                     throw new BadRequestException("Duplicate medicines found in the prescription.");
             }
 
-            var review = new DoctorReview
-            {
-                Id = Guid.CreateVersion7(),
-                ClinicQueueId = queue.Id,
-                ClinicQueue = queue,
-                TenantId = _tenant.TenantId,
-                Notes = dto.Notes,
-                FollowUpDate = dto.FollowUpDate
-            };
+            var review = _mapper.ToEntity(dto);
+            review.Id = Guid.CreateVersion7();
+            review.ClinicQueueId = queue.Id;
+            review.ClinicQueue = queue;
+            review.TenantId = _tenant.TenantId;
 
             if (dto.Medicines != null)
             {
@@ -69,16 +66,12 @@ namespace DoctorPatientTracking.Services.Implementation
                         model = new Medicine() { Name = med.Name, Id = Guid.CreateVersion7() };
                         await _unitOfWork.GetGenericRepo<Medicine>().AddAsync(model);
                     }
-                    review.Medicines.Add(new DoctorReviewMedicine
-                    {
-                        DoctorReviewId = review.Id,
-                        MedicinesId = model.Id,
-                        TenantId = _tenant.TenantId,
-                        Dosage = med.Dosage,
-                        TimesPerDay = med.TimesPerDay,
-                        DurationInDays = med.DurationInDays,
-                        Details = med.Details
-                    });
+                    var medicineLine = _mapper.ToMedicine(med);
+                    medicineLine.DoctorReviewId = review.Id;
+                    medicineLine.MedicinesId = model.Id;
+                    medicineLine.Medicines = model;
+                    medicineLine.TenantId = _tenant.TenantId;
+                    review.Medicines.Add(medicineLine);
                 }
             }
 
@@ -91,7 +84,7 @@ namespace DoctorPatientTracking.Services.Implementation
             await _unitOfWork.GetGenericRepo<DoctorReview>().AddAsync(review);
             await _unitOfWork.SaveChanagesAsync();
 
-            var result = DoctorReviewFactory.ToResultDto(review, medicineNameMap);
+            var result = _mapper.ToResultDto(review, medicineNameMap);
             return ApiResponse<DoctorReviewResultDto>.Success(result, "Doctor review created successfully.");
         }
 
@@ -106,7 +99,7 @@ namespace DoctorPatientTracking.Services.Implementation
             var totalCount = await _unitOfWork.GetGenericRepo<DoctorReview>().GetCountAsync(countSpec);
 
             var medicineNameMap = await GetMedicineNameMapForReviews(reviews);
-            var items = reviews.Select(r => DoctorReviewFactory.ToResultDto(r, medicineNameMap)).ToList();
+            var items = reviews.Select(r => _mapper.ToResultDto(r, medicineNameMap)).ToList();
 
             if (!pageNumber.HasValue || pageNumber <= 0) pageNumber = 1;
             if (!pageSize.HasValue || pageSize <= 0 || pageSize > 10) pageSize = 10;
@@ -129,7 +122,7 @@ namespace DoctorPatientTracking.Services.Implementation
                 throw new ForbiddenException("You are not authorized to view this review.");
 
             var medicineNameMap = await GetMedicineNameMapForReviews([review]);
-            var result = DoctorReviewFactory.ToResultDto(review, medicineNameMap);
+            var result = _mapper.ToResultDto(review, medicineNameMap);
 
             return ApiResponse<DoctorReviewResultDto>.Success(result, "Doctor review retrieved successfully.");
         }
@@ -193,38 +186,14 @@ namespace DoctorPatientTracking.Services.Implementation
             if (!string.IsNullOrWhiteSpace(clinic?.City)) addressParts.Add(clinic.City);
             if (!string.IsNullOrWhiteSpace(clinic?.AddressDetails)) addressParts.Add(clinic.AddressDetails);
 
-            var pdfModel = new MedicalReportPdfModel
-            {
-                ClinicName = clinic?.NameOfClinic ?? "Medical Clinic",
-                ClinicLogoPath = logoPhysicalPath,
-                ClinicSpecialty = clinic?.Specialty ?? string.Empty,
-                ClinicPhone = clinic?.PhoneNumber ?? string.Empty,
-                ClinicEmail = clinic?.Email ?? string.Empty,
-                ClinicAddress = string.Join(", ", addressParts),
-                DoctorName = doctorName,
-
-                PatientName = review.ClinicQueue.Patient?.FullName ?? "Patient",
-                PatientPhone = review.ClinicQueue.Patient?.PhoneNumber ?? string.Empty,
-                PatientGender = review.ClinicQueue.Patient?.Gender.ToString() ?? string.Empty,
-                PatientAge = age,
-                PatientBirthDate = review.ClinicQueue.Patient?.BirthDate,
-
-                ReviewId = review.Id,
-                VisitDate = review.ClinicQueue.AppointmentDate,
-                QueueNumber = review.ClinicQueue.QueueNumber,
-                ServiceName = review.ClinicQueue.ClinicService != null ? review.ClinicQueue.ClinicService.Type.ToString() : string.Empty,
-
-                DoctorNotes = review.Notes,
-                FollowUpDate = review.FollowUpDate,
-                Medicines = review.Medicines.Select(m => new MedicalReportMedicineItem
-                {
-                    Name = medicineNameMap.TryGetValue(m.MedicinesId, out var name) ? name : "Medicine",
-                    Dosage = m.Dosage,
-                    TimesPerDay = m.TimesPerDay,
-                    DurationInDays = m.DurationInDays,
-                    Details = m.Details
-                }).ToList()
-            };
+            var pdfModel = _mapper.ToPdfModel(
+                clinic,
+                review,
+                doctorName,
+                logoPhysicalPath,
+                string.Join(", ", addressParts),
+                age,
+                medicineNameMap);
 
             QuestPDF.Settings.License = LicenseType.Community;
             QuestPDF.Settings.UseSystemFonts = true;

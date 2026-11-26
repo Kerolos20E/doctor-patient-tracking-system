@@ -13,6 +13,5 @@ namespace DoctorPatientTracking.Shared.Dtos.User
         public Gender Gender { get; init; }
         public DateOnly BirthDate { get; init; }
         public string? PhotoUrl { get; init; }
-        public List<string> Roles { get; init; } = [];
     }
 }

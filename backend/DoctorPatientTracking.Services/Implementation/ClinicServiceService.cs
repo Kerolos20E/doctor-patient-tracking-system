@@ -2,17 +2,17 @@
 
 namespace DoctorPatientTracking.Services.Implementation
 {
-    public class ClinicServiceService(IUnitOfWork _unitOfWork, ITenantProvider _tenant) : IClinicServiceService
+    public class ClinicServiceService(IUnitOfWork _unitOfWork, ITenantProvider _tenant, ClinicServiceMapper _mapper) : IClinicServiceService
     {
         public async Task<ApiResponse<ClinicServiceDto>> AddService(CreteClinicServiceDto dto)
         {
             _tenant.CheckHasTenant();
             if (dto.DurationInMinutes < 10 || dto.DurationInMinutes > 90)
                 throw new BadRequestException("Duration of clinic service is between 10 to 90.");
-            var clinicModel = ClinicServiceFactory.ToClinicModel(dto);
+            var clinicModel = _mapper.ToEntity(dto);
             await _unitOfWork.GetGenericRepo<ClinicService>().AddAsync(clinicModel);
             await _unitOfWork.SaveChanagesAsync();
-            var result = ClinicServiceFactory.ToClinicDto(clinicModel);
+            var result = _mapper.ToDto(clinicModel);
             return ApiResponse<ClinicServiceDto>.Success(result);
         }
 
@@ -24,11 +24,11 @@ namespace DoctorPatientTracking.Services.Implementation
             var clinicModel = await _unitOfWork.GetGenericRepo<ClinicService>().GetByIdAsync(id);
             if (clinicModel is null)
                 throw new NotFoundException("Not found clinic service with this id.");
-            Update(ref clinicModel, dto);
+            _mapper.ApplyUpdate(dto, clinicModel);
 
             _unitOfWork.GetGenericRepo<ClinicService>().Update(clinicModel);
             await _unitOfWork.SaveChanagesAsync();
-            var result = ClinicServiceFactory.ToClinicDto(clinicModel);
+            var result = _mapper.ToDto(clinicModel);
             return ApiResponse<ClinicServiceDto>.Success(result);
         }
 
@@ -50,9 +50,9 @@ namespace DoctorPatientTracking.Services.Implementation
             var list = await _unitOfWork.GetGenericRepo<ClinicService>().GetAllAsync(specification);
             var totalSpecification = new ClinicServiceSpecification();
             var totalCount = await _unitOfWork.GetGenericRepo<ClinicService>().GetCountAsync(totalSpecification);
-            var result = list.Select(ClinicServiceFactory.ToClinicDto).ToArray();
+            var result = _mapper.ToDtos(list);
             if (!pageIndex.HasValue || pageIndex <= 0) pageIndex = 1;
-            return PagenatedResult<ClinicServiceDto>.Success(pageIndex.Value, result.Length, totalCount, result);
+            return PagenatedResult<ClinicServiceDto>.Success(pageIndex.Value, result.Count, totalCount, result);
         }
 
         public async Task<ApiResponse<ClinicServiceDto>> GetService(Guid id)
@@ -61,17 +61,8 @@ namespace DoctorPatientTracking.Services.Implementation
             var clinicModel = await _unitOfWork.GetGenericRepo<ClinicService>().GetByIdAsync(id);
             if (clinicModel is null)
                 throw new NotFoundException("Not found clinic service with this id.");
-            var result = ClinicServiceFactory.ToClinicDto(clinicModel);
+            var result = _mapper.ToDto(clinicModel);
             return ApiResponse<ClinicServiceDto>.Success(result);
-        }
-
-        private void Update(ref ClinicService model, UpdateClinicServiceDto dto)
-        {
-            model.Description = dto.Description;
-            model.DurationInMinutes = dto.DurationInMinutes;
-            model.IsActive = dto.IsActive;
-            model.Price = dto.Price;
-            model.Type = dto.Type;
         }
     }
 }

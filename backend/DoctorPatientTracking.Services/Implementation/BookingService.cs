@@ -9,7 +9,8 @@ namespace DoctorPatientTracking.Services.Implementation
         IUnitOfWork _unitOfWork,
         UserManager<ApplicationUser> _userManager,
         ITenantProvider _tenant,
-        IHolidaysRepo _holidaysRepo) : IBookingService
+        IHolidaysRepo _holidaysRepo,
+        BookingMapper _mapper) : IBookingService
     {
         public async Task<ApiResponse<BookingResultDto>> CreateBookingBySecretary(CreateBookingBySecretaryDto dto)
         {
@@ -108,7 +109,7 @@ namespace DoctorPatientTracking.Services.Implementation
             await _unitOfWork.GetGenericRepo<Booking>().AddAsync(booking);
             await _unitOfWork.SaveChanagesAsync();
 
-            var result = BookingFactory.ToBookingResultDto(booking, queue, patient, service);
+            var result = _mapper.ToResult(booking, queue, patient, service);
             return ApiResponse<BookingResultDto>.Success(result, "Booking created successfully.");
         }
 
@@ -158,13 +159,7 @@ namespace DoctorPatientTracking.Services.Implementation
             var countSpec = new TodayQueueCountSpecification(today);
             var totalCount = await _unitOfWork.GetGenericRepo<ClinicQueue>().GetCountAsync(countSpec);
 
-            var items = queues.Select(q => new QueueItemDto
-            {
-                ClinicQueueId = q.Id,
-                QueueNumber = q.QueueNumber,
-                PatientFullName = q.Patient.FullName,
-                PatientPhone = q.Patient.PhoneNumber ?? string.Empty
-            });
+            var items = _mapper.ToQueueItems(queues);
 
             if (!pageNumber.HasValue || pageNumber <= 0) pageNumber = 1;
             if (!pageSize.HasValue || pageSize <= 0 || pageSize > 10) pageSize = 10;
@@ -243,11 +238,7 @@ namespace DoctorPatientTracking.Services.Implementation
             var aheadSpec = new PeopleAheadSpecification(today, queue.QueueNumber);
             var peopleAhead = await _unitOfWork.GetGenericRepo<ClinicQueue>().GetCountAsync(aheadSpec);
 
-            var result = new PatientQueuePositionDto
-            {
-                YourQueueNumber = queue.QueueNumber,
-                PeopleAheadOfYou = peopleAhead
-            };
+            var result = _mapper.ToPosition(queue, peopleAhead);
 
             return ApiResponse<PatientQueuePositionDto>.Success(result, $"Your queue number is {queue.QueueNumber}. There are {peopleAhead} people ahead of you.");
         }

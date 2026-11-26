@@ -1,4 +1,5 @@
-﻿using DoctorPatientTracking.Shared.Dtos.User;
+﻿using DoctorPatientTracking.Services.Mappers;
+using DoctorPatientTracking.Shared.Dtos.User;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -16,7 +17,8 @@ namespace DoctorPatientTracking.Services.Implementation
         IOptions<JWT> jwt,
         IRefreshTokenRepo _refreshToken,
         ITenantProvider _tenant,
-        IFileService _fileService) : IAuthenticationService
+        IFileService _fileService,
+        UserMapper _mapper) : IAuthenticationService
     {
         public async Task<ApiResponse<UserResultDto>> Login(LoginDto user)
         {
@@ -39,7 +41,7 @@ namespace DoctorPatientTracking.Services.Implementation
             if (!_tenant.HasTenant) throw new BadRequestException("Clinic not resolved");
             if (user.Password != user.ConfirmedPassword)
                 throw new ForbiddenException("Password not equal Confirmed Password");
-            ApplicationUser originalUser = UserFactory.ToUser(user);
+            ApplicationUser originalUser = _mapper.ToEntity(user);
             originalUser.UserName = Helper.NormalizUserName(user.Phone, _tenant.TenantId);
             originalUser.PhoneNumber = Helper.NormalizePhone(user.Phone);
             var result = await _userManager.CreateAsync(originalUser, user.Password);
@@ -110,9 +112,7 @@ namespace DoctorPatientTracking.Services.Implementation
         {
             var user = await GetUserByIdAsync(userId)
                 ?? throw new NotFoundException("User not found.");
-
-            var roles = await _userManager.GetRolesAsync(user);
-            return ApiResponse<UserProfileDto>.Success(user.ToProfileDto(roles));
+            return ApiResponse<UserProfileDto>.Success(_mapper.ToDto(user));
         }
 
         private async Task<ApplicationUser?> GetUserByIdAsync(Guid userId)

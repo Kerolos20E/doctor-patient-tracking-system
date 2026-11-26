@@ -5,7 +5,7 @@ using System.Text.RegularExpressions;
 namespace DoctorPatientTracking.Services.Implementation
 {
     public class SecretaryService(IUnitOfWork _unitOfWork, UserManager<ApplicationUser> _userManager,
-        ITenantProvider _tenant) : ISecretaryService
+        ITenantProvider _tenant, SecretaryMapper _mapper) : ISecretaryService
     {
         private const string SecretaryRole = "Secretary";
         private const string DoctorRole = "Doctor";
@@ -14,7 +14,7 @@ namespace DoctorPatientTracking.Services.Implementation
         {
             var model = await GetUserByPhone(phone);
             bool isSecretary = await _userManager.IsInRoleAsync(model, SecretaryRole);
-            var result = model.ToSecretaryDto(isSecretary);
+            var result = _mapper.ToDto(model, isSecretary);
             return ApiResponse<SecretaryDto>.Success(result);
         }
 
@@ -33,7 +33,7 @@ namespace DoctorPatientTracking.Services.Implementation
                 throw new BadRequestException($"Failed to add secretary : {errors}");
             }
 
-            var result = model.ToSecretaryDto(true);
+            var result = _mapper.ToDto(model, true);
             return ApiResponse<SecretaryDto>.Success(result);
         }
 
@@ -50,7 +50,7 @@ namespace DoctorPatientTracking.Services.Implementation
                 throw new BadRequestException($"Failed to remove secretary : {errors}");
             }
 
-            var result = model.ToSecretaryDto(false);
+            var result = _mapper.ToDto(model, false);
             return ApiResponse<SecretaryDto>.Success(result);
         }
 

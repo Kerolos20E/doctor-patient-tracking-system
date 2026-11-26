@@ -6,19 +6,20 @@ namespace DoctorPatientTracking.Services.Implementation
     public class ClinicDetailsService(
         IUnitOfWork _unitOfWork,
         ITenantProvider _tenant,
-        IFileService _fileService) : IClinicService
+        IFileService _fileService,
+        ClinicDetailsMapper _mapper) : IClinicService
     {
         public async Task<ApiResponse<ClinicDetailsPatient>> GetByPatient()
         {
             var model = await GetCurrentClinic();
-            var result = TenantClinicFactory.ToClinicDetailsPatient(model);
+            var result = _mapper.ToPatient(model);
             return ApiResponse<ClinicDetailsPatient>.Success(result);
         }
 
         public async Task<ApiResponse<ClinicDetailsDoctor>> GetByDoctor()
         {
             var model = await GetCurrentClinic();
-            var result = TenantClinicFactory.ToClinicDetailsDoctor(model);
+            var result = _mapper.ToDoctor(model);
             return ApiResponse<ClinicDetailsDoctor>.Success(result);
         }
 
@@ -30,11 +31,11 @@ namespace DoctorPatientTracking.Services.Implementation
                 _fileService.DeleteFile(model.LogoUrl);
             }
 
-            Update(ref model, dto);
+            _mapper.ApplyUpdate(dto, model);
 
             _unitOfWork.GetGenericRepo<TenantClinic>().Update(model);
             await _unitOfWork.SaveChanagesAsync();
-            var result = TenantClinicFactory.ToClinicDetailsDoctor(model);
+            var result = _mapper.ToDoctor(model);
             return ApiResponse<ClinicDetailsDoctor>.Success(result);
         }
 
@@ -78,17 +79,5 @@ namespace DoctorPatientTracking.Services.Implementation
             return model;
         }
 
-        private void Update(ref TenantClinic model, UpdateClinicDetailsDto dto)
-        {
-            model.NameOfClinic = dto.NameOfClinic;
-            model.LogoUrl = dto.LogoUrl;
-            model.Specialty = dto.Specialty;
-            model.Governorate = dto.Governorate;
-            model.City = dto.City;
-            model.AddressDetails = dto.AddressDetails;
-            model.AddressLocationUrl = dto.AddressLocationUrl;
-            model.PhoneNumber = dto.PhoneNumber;
-            model.Email = dto.Email;
-        }
     }
 }

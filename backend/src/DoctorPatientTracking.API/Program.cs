@@ -5,6 +5,7 @@ using DoctorPatientTracking.Persistence;
 using DoctorPatientTracking.Persistence.Data;
 using DoctorPatientTracking.Persistence.Repositories;
 using DoctorPatientTracking.Services.Implementation;
+using DoctorPatientTracking.Services.Mappers;
 using DoctorPatientTracking.ServicesAbstraction.Contracts;
 using DoctorPatientTracking.Shared;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -104,6 +105,14 @@ public class Program
         builder.Services.AddScoped<IBookingService, BookingService>();
         builder.Services.AddScoped<IMedicineService, MedicineService>();
         builder.Services.AddScoped<IDoctorReviewService, DoctorReviewService>();
+        builder.Services.AddScoped<UserMapper>();
+        builder.Services.AddScoped<TimeOfWorkMapper>();
+        builder.Services.AddScoped<ClinicServiceMapper>();
+        builder.Services.AddScoped<SecretaryMapper>();
+        builder.Services.AddScoped<ClinicDetailsMapper>();
+        builder.Services.AddScoped<HolidayMapper>();
+        builder.Services.AddScoped<BookingMapper>();
+        builder.Services.AddScoped<DoctorReviewMapper>();
 
         #endregion Services
 
