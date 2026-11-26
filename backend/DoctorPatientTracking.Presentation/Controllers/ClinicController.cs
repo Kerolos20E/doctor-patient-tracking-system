@@ -1,9 +1,11 @@
-﻿using DoctorPatientTracking.Shared.Dtos.Clinic;
+﻿using DoctorPatientTracking.Domain.Exceptions;
+using DoctorPatientTracking.Shared.Dtos.Clinic;
+using FluentValidation;
 using Microsoft.AspNetCore.Http;
 
 namespace DoctorPatientTracking.Presentation.Controllers
 {
-    public class ClinicController(IClinicService _service) : ApiController
+    public class ClinicController(IClinicService _service, IValidator<UpdateClinicDetailsDto> _validator) : ApiController
     {
         [HttpGet("Get")]
         public async Task<ActionResult<ApiResponse<ClinicDetailsPatient>>> Get()
@@ -17,7 +19,15 @@ namespace DoctorPatientTracking.Presentation.Controllers
         [Authorize(Roles = "Doctor")]
         [HttpPut("Update")]
         public async Task<ActionResult<ApiResponse<ClinicDetailsDoctor>>> Update(UpdateClinicDetailsDto dto)
-            => Ok(await _service.UpdateClinicDetails(dto));
+        {
+            var result = _validator.Validate(dto);
+            if (!result.IsValid)
+            {
+                string errors = string.Join(',', result.Errors.Select(e => e.ErrorMessage));
+                throw new BadRequestException(errors);
+            }
+            return Ok(await _service.UpdateClinicDetails(dto));
+        }
 
         [Authorize(Roles = "Doctor")]
         [HttpPost("Logo")]

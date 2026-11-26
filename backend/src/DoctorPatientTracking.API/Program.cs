@@ -8,6 +8,8 @@ using DoctorPatientTracking.Services.Implementation;
 using DoctorPatientTracking.Services.Mappers;
 using DoctorPatientTracking.ServicesAbstraction.Contracts;
 using DoctorPatientTracking.Shared;
+using DoctorPatientTracking.Shared.Validator.User;
+using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -113,6 +115,7 @@ public class Program
         builder.Services.AddScoped<HolidayMapper>();
         builder.Services.AddScoped<BookingMapper>();
         builder.Services.AddScoped<DoctorReviewMapper>();
+        builder.Services.AddValidatorsFromAssemblyContaining<RegisterDtoValidator>();
 
         #endregion Services
 

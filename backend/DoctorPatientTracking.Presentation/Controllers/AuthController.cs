@@ -1,17 +1,36 @@
-﻿using DoctorPatientTracking.Shared.Dtos.User;
+﻿using DoctorPatientTracking.Domain.Exceptions;
+using DoctorPatientTracking.Shared.Dtos.User;
+using FluentValidation;
 using Microsoft.AspNetCore.Http;
 
 namespace DoctorPatientTracking.Presentation.Controllers
 {
-    public class AuthController(IAuthenticationService _authentication) : ApiController
+    public class AuthController(IAuthenticationService _authentication, IValidator<RegisterDto> _validatorRegister,
+        IValidator<LoginDto> _validatorLogin) : ApiController
     {
         [HttpPost("Login")]
         public async Task<ActionResult<ApiResponse<UserResultDto>>> Login(LoginDto login)
-            => Ok(await _authentication.Login(login));
+        {
+            var result = _validatorLogin.Validate(login);
+            if (!result.IsValid)
+            {
+                string errors = string.Join(',', result.Errors.Select(e => e.ErrorMessage));
+                throw new BadRequestException(errors);
+            }
+            return Ok(await _authentication.Login(login));
+        }
 
         [HttpPost("Register")]
         public async Task<ActionResult<ApiResponse<UserResultDto>>> Register(RegisterDto register)
-            => Ok(await _authentication.Register(register));
+        {
+            var result = _validatorRegister.Validate(register);
+            if (!result.IsValid)
+            {
+                string errors = string.Join(',', result.Errors.Select(e => e.ErrorMessage));
+                throw new BadRequestException(errors);
+            }
+            return Ok(await _authentication.Register(register));
+        }
 
         [HttpPost("RefreshToken")]
         public async Task<ActionResult<ApiResponse<UserResultDto>>> RefreshToken(string refreshToken)

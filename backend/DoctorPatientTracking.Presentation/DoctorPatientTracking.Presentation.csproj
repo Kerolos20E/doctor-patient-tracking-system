@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\DoctorPatientTracking.ServicesAbstraction\DoctorPatientTracking.ServicesAbstraction.csproj" />
+    <ProjectReference Include="..\src\DoctorPatientTracking.Domain\DoctorPatientTracking.Domain.csproj" />
   </ItemGroup>
 	<ItemGroup>
 		<FrameworkReference Include="Microsoft.AspNetCore.App"></FrameworkReference>

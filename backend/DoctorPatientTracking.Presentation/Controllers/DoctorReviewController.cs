@@ -1,13 +1,24 @@
+using DoctorPatientTracking.Domain.Exceptions;
 using DoctorPatientTracking.Shared.Dtos.DoctorReview;
+using FluentValidation;
 
 namespace DoctorPatientTracking.Presentation.Controllers
 {
-    public class DoctorReviewController(IDoctorReviewService _reviewService) : ApiController
+    public class DoctorReviewController(IDoctorReviewService _reviewService
+        , IValidator<CreateDoctorReviewDto> _validatorCreate) : ApiController
     {
         [HttpPost]
         [Authorize(Roles = "Doctor")]
         public async Task<ActionResult<ApiResponse<DoctorReviewResultDto>>> Create([FromBody] CreateDoctorReviewDto dto)
-            => Ok(await _reviewService.CreateReview(dto));
+        {
+            var result = _validatorCreate.Validate(dto);
+            if (!result.IsValid)
+            {
+                string errors = string.Join(',', result.Errors.Select(e => e.ErrorMessage));
+                throw new BadRequestException(errors);
+            }
+            return Ok(await _reviewService.CreateReview(dto));
+        }
 
         [HttpGet("Patient/{patientId:guid}")]
         [Authorize(Roles = "Doctor")]
