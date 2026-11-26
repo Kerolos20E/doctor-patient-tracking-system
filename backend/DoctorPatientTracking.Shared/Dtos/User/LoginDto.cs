@@ -1,12 +1,8 @@
-﻿using System.ComponentModel.DataAnnotations;
-
-namespace DoctorPatientTracking.Shared.Dtos.User
+﻿namespace DoctorPatientTracking.Shared.Dtos.User
 {
     public record LoginDto
     {
-        [Required, MaxLength(300), EmailAddress]
         public string Email { get; init; } = string.Empty;
-        [Required]
         public string Password { get; init; } = string.Empty;
     }
 }
