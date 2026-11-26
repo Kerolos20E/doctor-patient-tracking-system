@@ -7,10 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Validator\Holidays\" />
-    <Folder Include="Validator\Queue\" />
-    <Folder Include="Validator\Result\" />
-    <Folder Include="Validator\TimeWork\" />
     <Folder Include="Validator\User\" />
   </ItemGroup>
 
