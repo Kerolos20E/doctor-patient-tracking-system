@@ -78,6 +78,5 @@ namespace DoctorPatientTracking.Services.Implementation
                 throw new NotFoundException("Not found clinic.");
             return model;
         }
-
     }
 }

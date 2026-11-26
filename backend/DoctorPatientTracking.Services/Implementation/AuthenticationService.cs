@@ -1,5 +1,4 @@
-﻿using DoctorPatientTracking.Services.Mappers;
-using DoctorPatientTracking.Shared.Dtos.User;
+﻿using DoctorPatientTracking.Shared.Dtos.User;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;

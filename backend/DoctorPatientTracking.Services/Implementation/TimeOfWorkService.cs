@@ -63,6 +63,5 @@ namespace DoctorPatientTracking.Services.Implementation
             await _unitOfWork.SaveChanagesAsync();
             return ApiResponse<bool>.Success(true, "");
         }
-
     }
 }
