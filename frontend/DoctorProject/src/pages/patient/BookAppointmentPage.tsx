@@ -15,7 +15,7 @@ import {
 /** SCREEN_10 — حجز موعد جديد (UI فقط، من غير لوجيك) */
 export default function BookAppointmentPage() {
   return (
-    <PatientLayout>
+    <PatientLayout activeNav="booking">
       <div className="flex flex-col w-full">
         <ClinicStatusBar />
         <BookingStepper />
